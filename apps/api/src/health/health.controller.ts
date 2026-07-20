@@ -1,12 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
 import { healthResponseSchema, type HealthResponse } from '@trackly/contracts';
+import { Public } from '../auth/public.decorator';
 
 @Controller('health')
 export class HealthController {
   /**
-   * Ne doit JAMAIS toucher la base de données : sert au monitoring externe
-   * et au keep-alive éventuel sans réveiller Postgres (docs/cadrage/04).
+   * Publique (monitoring externe, keep-alive) et ne doit JAMAIS toucher la
+   * base de données (docs/cadrage/04).
    */
+  @Public()
   @Get()
   check(): HealthResponse {
     return healthResponseSchema.parse({

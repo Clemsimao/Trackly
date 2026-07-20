@@ -6,6 +6,8 @@ import { z } from 'zod';
  * validée côté API (source de vérité) et typée côté front.
  */
 
+export * from './auth';
+
 // ── Référentiels transverses ────────────────────────────────────────────────
 
 export const mediaTypeSchema = z.enum(['game', 'series', 'film']);

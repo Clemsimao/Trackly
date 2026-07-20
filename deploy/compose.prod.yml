@@ -27,6 +27,11 @@ services:
       PORT: 3000
       LOG_LEVEL: info
       DATABASE_URL: postgresql://trackly:${POSTGRES_PASSWORD}@postgres:5432/trackly
+      # URL publique — sert à construire les liens de réinitialisation (Lot 1)
+      APP_URL: ${APP_URL:-https://trackly.clemhouse.uk}
+      # E-mails transactionnels : sans clé, les liens sont journalisés dans les logs api
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-Trackly <onboarding@resend.dev>}
     depends_on:
       postgres:
         condition: service_healthy
