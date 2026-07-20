@@ -54,14 +54,14 @@ L'étape 25 (liste des décisions à valider) est transverse : registre ci-desso
 
 ## Développement
 
-| Lot   | Contenu                                                                                                                | Statut                                                                                                          |
-| ----- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Lot 0 | Fondations : monorepo, API NestJS+Prisma, front React+Vite+Tailwind, contrats partagés, CI, Docker prod, guide Proxmox | ✅ Livré le 2026-07-20 — reste à faire côté utilisateur : push GitHub + déploiement Proxmox (deploy/proxmox.md) |
-| Lot 1 | Comptes et sécurité de base                                                                                            | ⏳ À venir                                                                                                      |
-| Lot 2 | Catalogue et recherche (TMDB/IGDB)                                                                                     | ⏳ À venir                                                                                                      |
-| Lot 3 | Bibliothèque et suivi                                                                                                  | ⏳ À venir                                                                                                      |
-| Lot 4 | Budget temps et tableau de bord                                                                                        | ⏳ À venir                                                                                                      |
-| Lot 5 | PWA et finitions V1                                                                                                    | ⏳ À venir                                                                                                      |
+| Lot   | Contenu                                                                                                                | Statut                                                                                                                                         |
+| ----- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lot 0 | Fondations : monorepo, API NestJS+Prisma, front React+Vite+Tailwind, contrats partagés, CI, Docker prod, guide Proxmox | ✅ Livré le 2026-07-20 — poussé sur GitHub, CI run #1 verte, images GHCR publiées (publiques). Reste : déploiement Proxmox (deploy/proxmox.md) |
+| Lot 1 | Comptes et sécurité de base                                                                                            | ⏳ À venir                                                                                                                                     |
+| Lot 2 | Catalogue et recherche (TMDB/IGDB)                                                                                     | ⏳ À venir                                                                                                                                     |
+| Lot 3 | Bibliothèque et suivi                                                                                                  | ⏳ À venir                                                                                                                                     |
+| Lot 4 | Budget temps et tableau de bord                                                                                        | ⏳ À venir                                                                                                                                     |
+| Lot 5 | PWA et finitions V1                                                                                                    | ⏳ À venir                                                                                                                                     |
 
 Écart assumé vs plan initial : pas de paquet `packages/config` (configs lint/ts partagées à la racine — plus simple, un paquet dédié n'apporterait rien à 2 apps) ; Sentry sera branché au Lot 1 (nécessite un DSN, valeur nulle sur un Hello World).
 
