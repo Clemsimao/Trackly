@@ -1,0 +1,87 @@
+# Avancement du cadrage
+
+Dernière mise à jour : 2026-07-17.
+
+La méthode de travail définie comporte 25 étapes avant tout développement. Elles sont regroupées en quatre phases livrées et validées successivement.
+
+## Phase A — Compréhension, MVP, stack (livrée et validée le 2026-07-17)
+
+| #   | Étape                               | Statut                  | Document                                                       |
+| --- | ----------------------------------- | ----------------------- | -------------------------------------------------------------- |
+| 1   | Reformulation du besoin             | ✅ Livré                | [01-reformulation-du-besoin.md](01-reformulation-du-besoin.md) |
+| 2   | Objectifs principaux du produit     | ✅ Livré                | [01-reformulation-du-besoin.md](01-reformulation-du-besoin.md) |
+| 4   | Définition d'un MVP réaliste        | ✅ Validé le 2026-07-17 | [02-mvp-et-versions.md](02-mvp-et-versions.md)                 |
+| 5   | Séparation MVP / évolutions futures | ✅ Validé le 2026-07-17 | [02-mvp-et-versions.md](02-mvp-et-versions.md)                 |
+| 6   | Proposition de plusieurs stacks     | ✅ Livré                | [03-comparaison-des-stacks.md](03-comparaison-des-stacks.md)   |
+| 7   | Comparaison des stacks              | ✅ Livré                | [03-comparaison-des-stacks.md](03-comparaison-des-stacks.md)   |
+| 8   | Recommandation d'une stack finale   | ✅ Validé le 2026-07-17 | [03-comparaison-des-stacks.md](03-comparaison-des-stacks.md)   |
+
+## Phase B — Recherche et risques (livrée le 2026-07-17)
+
+| #   | Étape                                                       | Statut                 | Document                                                                 |
+| --- | ----------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------ |
+| 13  | Recherche et comparaison des API médias (sources vérifiées) | ✅ Livré le 2026-07-17 | [05-recherche-api-medias.md](05-recherche-api-medias.md)                 |
+| 14  | Faisabilité des connexions PSN, Xbox, Steam et autres       | ✅ Livré le 2026-07-17 | [06-faisabilite-plateformes-jeux.md](06-faisabilite-plateformes-jeux.md) |
+| 3   | Profils d'utilisateurs (personas)                           | ✅ Livré le 2026-07-17 | [07-personas.md](07-personas.md)                                         |
+| 15  | Risques techniques                                          | ✅ Livré le 2026-07-17 | [08-registre-des-risques.md](08-registre-des-risques.md)                 |
+| 16  | Risques fonctionnels                                        | ✅ Livré le 2026-07-17 | [08-registre-des-risques.md](08-registre-des-risques.md)                 |
+
+## Phase C — Architecture et données (livrée le 2026-07-17)
+
+| #   | Étape                             | Statut                 | Document                                                 |
+| --- | --------------------------------- | ---------------------- | -------------------------------------------------------- |
+| 9   | Architecture globale              | ✅ Livré le 2026-07-17 | [09-architecture-globale.md](09-architecture-globale.md) |
+| 10  | Organisation frontend / backend   | ✅ Livré le 2026-07-17 | [09-architecture-globale.md](09-architecture-globale.md) |
+| 11  | Premier modèle de données         | ✅ Livré le 2026-07-17 | [10-modele-de-donnees.md](10-modele-de-donnees.md)       |
+| 12  | Diagramme des principales entités | ✅ Livré le 2026-07-17 | [10-modele-de-donnees.md](10-modele-de-donnees.md)       |
+
+## Phase D — Produit et delivery (livrée le 2026-07-17)
+
+| #   | Étape                       | Statut                 | Document                                                   |
+| --- | --------------------------- | ---------------------- | ---------------------------------------------------------- |
+| 17  | Pages principales           | ✅ Livré le 2026-07-17 | [11-pages-et-parcours.md](11-pages-et-parcours.md)         |
+| 18  | Parcours utilisateurs       | ✅ Livré le 2026-07-17 | [11-pages-et-parcours.md](11-pages-et-parcours.md)         |
+| 19  | User stories                | ✅ Livré le 2026-07-17 | [12-user-stories-mvp.md](12-user-stories-mvp.md)           |
+| 20  | Critères d'acceptation      | ✅ Livré le 2026-07-17 | [12-user-stories-mvp.md](12-user-stories-mvp.md)           |
+| 21  | Découpage en lots / sprints | ✅ Livré le 2026-07-17 | [13-plan-de-lots.md](13-plan-de-lots.md)                   |
+| 22  | Stratégie de tests          | ✅ Livré le 2026-07-17 | [14-strategie-tests.md](14-strategie-tests.md)             |
+| 23  | Stratégie de sécurité       | ✅ Livré le 2026-07-17 | [15-strategie-securite.md](15-strategie-securite.md)       |
+| 24  | Stratégie de déploiement    | ✅ Livré le 2026-07-17 | [16-strategie-deploiement.md](16-strategie-deploiement.md) |
+
+L'étape 25 (liste des décisions à valider) est transverse : registre ci-dessous.
+
+**🏁 Cadrage complet : les 25 étapes sont livrées et validées.**
+
+## Développement
+
+| Lot   | Contenu                                                                                                                | Statut                                                                                                          |
+| ----- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Lot 0 | Fondations : monorepo, API NestJS+Prisma, front React+Vite+Tailwind, contrats partagés, CI, Docker prod, guide Proxmox | ✅ Livré le 2026-07-20 — reste à faire côté utilisateur : push GitHub + déploiement Proxmox (deploy/proxmox.md) |
+| Lot 1 | Comptes et sécurité de base                                                                                            | ⏳ À venir                                                                                                      |
+| Lot 2 | Catalogue et recherche (TMDB/IGDB)                                                                                     | ⏳ À venir                                                                                                      |
+| Lot 3 | Bibliothèque et suivi                                                                                                  | ⏳ À venir                                                                                                      |
+| Lot 4 | Budget temps et tableau de bord                                                                                        | ⏳ À venir                                                                                                      |
+| Lot 5 | PWA et finitions V1                                                                                                    | ⏳ À venir                                                                                                      |
+
+Écart assumé vs plan initial : pas de paquet `packages/config` (configs lint/ts partagées à la racine — plus simple, un paquet dédié n'apporterait rien à 2 apps) ; Sentry sera branché au Lot 1 (nécessite un DSN, valeur nulle sur un Hello World).
+
+## Registre des décisions
+
+| ID  | Décision                                                                                     | Résolution                                                                                                                                                                                                                                                                                                                               | Statut                              |
+| --- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| D1  | Périmètre du MVP (recommandation films en V2, import Steam en V3, trophées simplifiés en V1) | Voir [02-mvp-et-versions.md](02-mvp-et-versions.md)                                                                                                                                                                                                                                                                                      | ✅ Validé le 2026-07-17             |
+| D2  | Stack technique                                                                              | Option B : monorepo TypeScript — React+Vite (PWA) / NestJS / PostgreSQL                                                                                                                                                                                                                                                                  | ✅ Validé le 2026-07-17             |
+| D3  | Hébergement                                                                                  | **Révisé le 2026-07-17** : primaire = **auto-hébergement Proxmox (VM/LXC + Docker Compose) + Cloudflare Tunnel** (0 €, pas de réveil à froid, pas de quota, données chez soi) ; repli documenté sans refactor = Cloudflare Pages + Render + Neon, ou VPS. Voir [04-hebergement-0-euro.md](04-hebergement-0-euro.md)                      | ✅ Validé (révisé) le 2026-07-17    |
+| D4  | Nom de travail « Trackly »                                                                   | Conservé (nom du dépôt) tant qu'aucun nom définitif n'est choisi                                                                                                                                                                                                                                                                         | ✅ Validé le 2026-07-17             |
+| D5  | Langue                                                                                       | UI en français d'abord, structure i18n prête dès le départ                                                                                                                                                                                                                                                                               | ✅ Validé le 2026-07-17             |
+| D6  | Pile API métadonnées                                                                         | TMDB (films/séries) + TVmaze (compl. séries) + IGDB (jeux, dont durées via `game_time_to_beats`) — tout gratuit. Voir [05-recherche-api-medias.md](05-recherche-api-medias.md)                                                                                                                                                           | ✅ Validé (recherche) le 2026-07-17 |
+| D7  | Intégrations plateformes                                                                     | Steam seule voie officielle propre (V3) ; PSN/Nintendo/Epic/GOG en manuel ; Xbox via OpenXBL sous réserve. Voir [06-faisabilite-plateformes-jeux.md](06-faisabilite-plateformes-jeux.md)                                                                                                                                                 | ✅ Validé (recherche) le 2026-07-17 |
+| D8  | Rôle de l'import auto                                                                        | **Confort, pas cœur du produit** (arbitrage utilisateur du 2026-07-17). Priorité produit = saisie manuelle excellente (recherche IGDB + préremplissage + ajout 2 clics), utile dès la V1 pour toutes les plateformes. Steam auto reste un bonus V3. Le cœur de valeur = suivi/progression/budget temps/reco, indépendant des connexions. | ✅ Validé le 2026-07-17             |
+
+## Points de vigilance juridiques à retenir (issus de la phase B)
+
+- **TMDB deviendra payant si Trackly se monétise** (app payante, **publicité, dons**, revente, entraînement IA) → accord écrit commercial requis. Point d'attention n°1 en cas de monétisation.
+- **Attribution JustWatch obligatoire sur CHAQUE fiche** affichant la disponibilité streaming (pas seulement dans les crédits) — contrainte de maquette dès la phase D.
+- **Aucun stockage d'identifiant de session tiers** (NPSSO PlayStation, cookies) : l'architecture ne doit pas offrir ce chemin. Seuls OAuth/OpenID officiels admis (Steam).
+- **Descriptions de jeux en anglais** (IGDB non localisé) vs synopsis films/séries en FR (TMDB) — à assumer côté UX.
+- Couvertures FR (TMDB) et durées (IGDB) **non garanties à 100 %** → test empirique recommandé en tout début de développement ; estimations toujours éditables manuellement.

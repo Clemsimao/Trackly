@@ -1,0 +1,50 @@
+# Production sur le Proxmox (VM/LXC avec Docker).
+# Usage : copier ce fichier + un .env (voir .env.example, section production)
+#   docker compose -f compose.prod.yml up -d
+# AUCUN port publié sur l'hôte : seule la sortie cloudflared expose l'app.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: trackly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?definir POSTGRES_PASSWORD dans .env}
+      POSTGRES_DB: trackly
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U trackly -d trackly']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: ghcr.io/${GHCR_OWNER:?definir GHCR_OWNER dans .env}/trackly-api:${TAG:-latest}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://trackly:${POSTGRES_PASSWORD}@postgres:5432/trackly
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    image: ghcr.io/${GHCR_OWNER}/trackly-web:${TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?definir CLOUDFLARE_TUNNEL_TOKEN dans .env}
+    depends_on:
+      - web
+
+volumes:
+  pgdata:

@@ -1,0 +1,54 @@
+{
+  "name": "trackly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Suivi personnel des jeux vidéo, séries et films — bibliothèque, progression, budget temps",
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "simple-git-hooks"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.0",
+    "eslint": "^9.30.0",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "lint-staged": "^15.5.0",
+    "prettier": "^3.5.0",
+    "simple-git-hooks": "^2.13.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.35.0"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "@swc/core",
+      "esbuild",
+      "simple-git-hooks",
+      "unrs-resolver"
+    ]
+  }
+}

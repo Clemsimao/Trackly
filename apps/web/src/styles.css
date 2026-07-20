@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+
+/* Mode sombre piloté par la classe .dark sur <html> (persisté, cf. index.html) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Design tokens Trackly (première itération, ajustables — docs/cadrage/11) ── */
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Accent : violet électrique, univers gaming/streaming sans copier personne */
+  --color-primary: oklch(0.65 0.21 295);
+  --color-primary-strong: oklch(0.55 0.23 295);
+
+  /* Statuts (repris par les 3 médias) */
+  --color-progress: oklch(0.7 0.15 250);
+  --color-done: oklch(0.72 0.17 150);
+  --color-paused: oklch(0.78 0.14 85);
+  --color-dropped: oklch(0.62 0.19 25);
+}
+
+/* Surfaces et textes : variables par thème, consommées via bg-(--surface) etc. */
+:root {
+  --bg: oklch(0.98 0.005 295);
+  --surface: oklch(1 0 0);
+  --border: oklch(0.9 0.01 295);
+  --text: oklch(0.25 0.02 295);
+  --text-muted: oklch(0.5 0.02 295);
+}
+
+.dark {
+  --bg: oklch(0.17 0.02 295);
+  --surface: oklch(0.22 0.02 295);
+  --border: oklch(0.32 0.02 295);
+  --text: oklch(0.95 0.01 295);
+  --text-muted: oklch(0.7 0.02 295);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}

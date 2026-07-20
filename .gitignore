@@ -1,0 +1,14 @@
+# Dépendances et builds
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environnement — jamais de secrets dans git
+.env
+.env.*.local
+
+# Divers
+.DS_Store
+logs/
+*.log
