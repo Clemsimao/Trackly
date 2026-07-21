@@ -41,6 +41,9 @@ Si les images GHCR sont privées : `docker login ghcr.io` avec un PAT `read:pack
 cat > /opt/trackly/update.sh <<'EOF'
 #!/bin/sh
 cd /opt/trackly
+# Le fichier compose évolue avec le code : le rafraîchir AVANT de tirer les images
+# (leçon du Lot 2 : un compose obsolète ne transmet pas les nouvelles variables d'env)
+curl -fsSL -o compose.prod.yml https://raw.githubusercontent.com/Clemsimao/Trackly/main/deploy/compose.prod.yml
 docker compose -f compose.prod.yml pull --quiet
 docker compose -f compose.prod.yml up -d
 docker image prune -f
