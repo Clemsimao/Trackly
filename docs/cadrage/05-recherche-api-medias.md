@@ -52,11 +52,11 @@ Cette pile couvre **tout le besoin de métadonnées du MVP à 0 €**. Elle vali
 - Ce sont des **moyennes de soumissions communautaires stockées dans IGDB** (pas un flux HowLongToBeat) → **aucun scraping, aucune zone grise juridique.** Source : [game-time-to-beat](https://api-docs.igdb.com/#game-time-to-beat).
 - **HowLongToBeat** : la recherche **n'a pas confirmé** l'existence d'une API officielle HLTB ni le détail de ses CGU sur le scraping (les intégrations connues restent non officielles). **Décision : on ne dépend pas de HLTB** ; l'endpoint IGDB couvre le besoin par des moyens propres.
 - **⚠️ Couverture non garantie** : IGDB ne publie aucun chiffre de couverture ; elle dépend du volume de soumissions par jeu. Cohérent avec l'exigence produit : les estimations restent **toujours éditables manuellement**, avec provenance affichée (auto / manuel / modifié). **À valider empiriquement** sur un échantillon de jeux réels avant de figer.
-- **RAWG** : source alternative jeux non tranchée ici (CGU/restrictions commerciales à vérifier si un complément à IGDB s'avère nécessaire).
+- **RAWG** : **vérifié le 2026-07-20** (question soulevée par Julien, sources : [rawg.io/apidocs](https://rawg.io/apidocs)). Base ~500 000 jeux, très populaire dans les tutoriels. **Écarté comme source** pour Trackly : (1) gratuit limité au **non-commercial** avec backlinks obligatoires, usage commercial à **149 $/mois** — là où IGDB reste gratuit même en commercial ; (2) **pas d'équivalent à `game_time_to_beats`** (un seul champ playtime moyen, pas les 3 durées histoire/+annexes/100 % dont le budget temps a besoin) ; (3) qualité en baisse documentée (entrées fantômes, données incomplètes, [migration de projets vers IGDB en 2024](https://gamevau.lt/blog/2024/05/07/)) ; IGDB est adossé à Twitch/Amazon (pérennité). Reste un plan B connu si IGDB devenait indisponible.
 
 ## Points à revérifier / non couverts
 
 1. Tarif commercial exact de TMDB et quotas hauts (sources communautaires, « susceptibles de changer »).
 2. Couverture réelle FR (TMDB) et couverture réelle de `game_time_to_beats` (IGDB) sur un échantillon représentatif → **test empirique recommandé en tout début de développement**.
-3. RAWG et OMDb : CGU/quotas/coûts non vérifiés (compléments potentiels seulement).
+3. ~~RAWG~~ (vérifié le 2026-07-20, écarté — voir section 5) ; OMDb : non vérifié (complément potentiel seulement).
 4. Rappel : dons ou publicité feraient basculer TMDB en usage commercial — vigilance si un bouton de don est ajouté un jour.
