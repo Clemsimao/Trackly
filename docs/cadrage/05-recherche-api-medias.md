@@ -57,6 +57,9 @@ Cette pile couvre **tout le besoin de métadonnées du MVP à 0 €**. Elle vali
 ## Points à revérifier / non couverts
 
 1. Tarif commercial exact de TMDB et quotas hauts (sources communautaires, « susceptibles de changer »).
-2. Couverture réelle FR (TMDB) et couverture réelle de `game_time_to_beats` (IGDB) sur un échantillon représentatif → **test empirique recommandé en tout début de développement**.
+2. Couverture réelle mesurée (script `coverage-check`, exécuté le 2026-07-21 sur l'échantillon de 20 films + 20 séries — **partie TMDB** ; jeux en attente des clés IGDB) :
+   - **Films** : 100 % trouvés, 100 % synopsis FR, 100 % durée connue. ✅ Rien à signaler.
+   - **Séries** : 100 % trouvées, 100 % synopsis FR, mais **seulement 10 % avec `episode_run_time` renseigné** au niveau série (champ souvent vide sur les séries récentes — particularité TMDB connue). ⚠️ **Conséquence Lot 3** : le budget temps des séries s'appuiera sur la **durée par épisode** (fournie dans le détail des saisons `/tv/{id}/season/{n}`, chaque épisode ayant son propre `runtime`), avec la moyenne de la série en repli — exactement le mécanisme « durée réelle sinon moyenne » prévu au cahier des charges.
+   - **Jeux** (`game_time_to_beats`) : à mesurer dès que les clés IGDB seront créées.
 3. ~~RAWG~~ (vérifié le 2026-07-20, écarté — voir section 5) ; OMDb : non vérifié (complément potentiel seulement).
 4. Rappel : dons ou publicité feraient basculer TMDB en usage commercial — vigilance si un bouton de don est ajouté un jour.
