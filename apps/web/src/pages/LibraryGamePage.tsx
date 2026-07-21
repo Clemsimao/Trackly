@@ -14,6 +14,7 @@ import {
   completionTargetSchema,
   gameRemainingSeconds,
   ownershipStatusSchema,
+  percentFromStep,
 } from '@trackly/contracts';
 import {
   addOwnership,
@@ -348,6 +349,12 @@ function OwnershipCard({
             className={inputClass}
           />
         </label>
+        <StepToPercentHelper
+          onApply={(percent, label) => {
+            set('progressPercent')(String(percent));
+            if (form.journalNote.trim() === '') set('journalNote')(label);
+          }}
+        />
         <label className="flex flex-col gap-1 text-sm sm:col-span-2">
           <span className="text-(--text-muted)">{fr.library.ownership.nextObjective}</span>
           <input
@@ -427,6 +434,56 @@ function OwnershipCard({
         <SaveButton pending={saveMutation.isPending} saved={saveMutation.isSuccess} />
       </div>
     </form>
+  );
+}
+
+/**
+ * « Je suis au chapitre 7 sur 14 » → 50 %. On connaît rarement son %,
+ * mais toujours sa position dans l'histoire — approximation assumée
+ * (les chapitres n'ont pas tous la même longueur).
+ */
+function StepToPercentHelper({ onApply }: { onApply: (percent: number, label: string) => void }) {
+  const [step, setStep] = useState('');
+  const [total, setTotal] = useState('');
+  const percent = percentFromStep(Number(step), Number(total));
+  const ready = step !== '' && total !== '' && percent != null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-sm sm:col-span-2">
+      <span className="text-(--text-muted)">{fr.library.ownership.stepHelper}</span>
+      <span className="text-(--text-muted)">{fr.library.ownership.stepPrefix}</span>
+      <input
+        type="number"
+        min="0"
+        value={step}
+        onChange={(event) => setStep(event.target.value)}
+        aria-label={`${fr.library.ownership.stepPrefix} actuelle`}
+        className={`w-16 text-center ${inputClass}`}
+      />
+      <span className="text-(--text-muted)">{fr.library.ownership.stepOf}</span>
+      <input
+        type="number"
+        min="1"
+        value={total}
+        onChange={(event) => setTotal(event.target.value)}
+        aria-label={`${fr.library.ownership.stepPrefix}s au total`}
+        className={`w-16 text-center ${inputClass}`}
+      />
+      <button
+        type="button"
+        disabled={!ready}
+        onClick={() => {
+          if (percent == null) return;
+          onApply(percent, `${fr.library.ownership.stepNote} ${step}/${total}`);
+          setStep('');
+          setTotal('');
+        }}
+        className="rounded-lg border border-(--border) px-3 py-1.5 hover:border-primary disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-primary"
+      >
+        {fr.library.ownership.stepApply}
+        {ready ? ` → ${percent} %` : ''}
+      </button>
+    </div>
   );
 }
 

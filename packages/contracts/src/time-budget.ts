@@ -130,6 +130,17 @@ function median(values: number[]): number | null {
   return ((sorted[middle - 1] as number) + (sorted[middle] as number)) / 2;
 }
 
+/**
+ * « Je suis à l'étape X sur Y » (chapitre, quête, boss…) → % de progression.
+ * Approximation assumée : les étapes n'ont pas toutes la même longueur.
+ * Renvoie null si les entrées ne permettent pas un calcul sensé.
+ */
+export function percentFromStep(step: number, total: number): number | null {
+  if (!Number.isFinite(step) || !Number.isFinite(total)) return null;
+  if (total <= 0 || step < 0) return null;
+  return Math.min(100, Math.round((step / total) * 100));
+}
+
 // ── Films ───────────────────────────────────────────────────────────────────
 
 export function filmRemainingSeconds(runtimeMinutes: number | null): number | null {

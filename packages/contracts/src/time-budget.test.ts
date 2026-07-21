@@ -4,6 +4,7 @@ import {
   DEFAULT_EPISODE_RUNTIME_MINUTES,
   filmRemainingSeconds,
   gameRemainingSeconds,
+  percentFromStep,
   seriesRemaining,
   targetDurationSeconds,
 } from './time-budget';
@@ -177,6 +178,21 @@ describe('seriesRemaining', () => {
       seriesRuntimeMinutes: 45,
     });
     expect(result).toEqual({ seconds: 0, estimated: false });
+  });
+});
+
+describe('percentFromStep — « chapitre X sur Y » → %', () => {
+  it('convertit et arrondit', () => {
+    expect(percentFromStep(7, 14)).toBe(50);
+    expect(percentFromStep(1, 3)).toBe(33);
+    expect(percentFromStep(0, 10)).toBe(0);
+  });
+
+  it('borne à 100 et rejette les entrées absurdes', () => {
+    expect(percentFromStep(15, 14)).toBe(100);
+    expect(percentFromStep(3, 0)).toBeNull();
+    expect(percentFromStep(-1, 10)).toBeNull();
+    expect(percentFromStep(Number.NaN, 10)).toBeNull();
   });
 });
 
