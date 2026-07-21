@@ -9,6 +9,7 @@ import { z } from 'zod';
 export * from './media';
 export * from './auth';
 export * from './catalog';
+export * from './library';
 
 // ── Santé de l'API ──────────────────────────────────────────────────────────
 

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { filmDetailSchema, seriesDetailSchema } from '@trackly/contracts';
-import { mapMovieDetail, mapMovieSearchResult, mapTvDetail } from './tmdb.mappers';
+import {
+  mapMovieDetail,
+  mapMovieSearchResult,
+  mapSeasonEpisodes,
+  mapTvDetail,
+} from './tmdb.mappers';
 
 // Fixtures figées reflétant la forme réelle des réponses TMDB (contrat, docs/cadrage/14)
 const movieDetail = {
@@ -64,5 +69,33 @@ describe('mappers TMDB', () => {
     const item = mapMovieSearchResult({ id: 603, title: 'Matrix', release_date: '1999-06-23' });
     expect(item.year).toBe(1999);
     expect(item.mediaType).toBe('film');
+  });
+});
+
+describe('mapSeasonEpisodes (Lot 3)', () => {
+  it('normalise les épisodes avec runtime et date de diffusion', () => {
+    const episodes = mapSeasonEpisodes({
+      episodes: [
+        { episode_number: 1, name: 'Pilot', runtime: 58, air_date: '2008-01-20' },
+        { episode_number: 2, name: '', runtime: null, air_date: null },
+      ],
+    });
+    expect(episodes[0]).toEqual({
+      episodeNumber: 1,
+      name: 'Pilot',
+      runtimeMinutes: 58,
+      airDate: '2008-01-20',
+    });
+    // Nom absent → libellé de repli ; runtime/date inconnus → null (jamais 0)
+    expect(episodes[1]).toEqual({
+      episodeNumber: 2,
+      name: 'Épisode 2',
+      runtimeMinutes: null,
+      airDate: null,
+    });
+  });
+
+  it('saison sans épisodes → liste vide', () => {
+    expect(mapSeasonEpisodes({})).toEqual([]);
   });
 });

@@ -8,6 +8,7 @@ import { SessionGuard } from './auth/session.guard';
 import { CatalogModule } from './catalog/catalog.module';
 import { AppThrottlerGuard } from './common/throttler.guard';
 import { HealthModule } from './health/health.module';
+import { LibraryModule } from './library/library.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -29,6 +30,7 @@ import { PrismaModule } from './prisma/prisma.module';
     PrismaModule,
     AuthModule,
     CatalogModule,
+    LibraryModule,
     HealthModule,
   ],
   providers: [

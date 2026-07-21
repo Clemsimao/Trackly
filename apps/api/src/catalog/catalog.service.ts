@@ -94,6 +94,11 @@ export class CatalogService {
       this.tmdb.getSeries(externalId),
     );
   }
+
+  /** Sans cache applicatif : les épisodes sont persistés en EpisodeRecord (Lot 3). */
+  getSeasonEpisodes(externalId: string, seasonNumber: number) {
+    return this.tmdb.getSeasonEpisodes(externalId, seasonNumber);
+  }
 }
 
 export function interleaveByType(items: SearchResultItem[]): SearchResultItem[] {

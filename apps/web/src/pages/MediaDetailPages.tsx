@@ -4,6 +4,7 @@ import { Link, useParams } from '@tanstack/react-router';
 import type { TimeToBeat } from '@trackly/contracts';
 import { getFilmDetail, getGameDetail, getSeriesDetail } from '../api/catalog';
 import { ApiClientError } from '../api/client';
+import { AddToLibraryPanel } from '../components/library/AddToLibrary';
 import { fr } from '../i18n/fr';
 import { formatHoursFromSeconds, formatMinutes } from '../utils/format';
 
@@ -150,6 +151,7 @@ export function GameDetailPage() {
             posterUrl={data.coverUrl}
             title={data.title}
           />
+          <AddToLibraryPanel mediaType="game" externalId={id} platforms={data.platforms} />
           <div className="mt-4 space-y-2">
             <Chips items={data.genres} />
             <MetaRow label={fr.media.releaseDate} value={data.releaseDate} />
@@ -183,6 +185,7 @@ export function FilmDetailPage() {
       {data ? (
         <>
           <Hero backdropUrl={data.backdropUrl} posterUrl={data.posterUrl} title={data.title} />
+          <AddToLibraryPanel mediaType="film" externalId={id} />
           <div className="mt-4 space-y-2">
             <Chips items={data.genres} />
             <MetaRow label={fr.media.releaseDate} value={data.releaseDate} />
@@ -217,6 +220,7 @@ export function SeriesDetailPage() {
       {data ? (
         <>
           <Hero backdropUrl={data.backdropUrl} posterUrl={data.posterUrl} title={data.title} />
+          <AddToLibraryPanel mediaType="series" externalId={id} />
           <div className="mt-4 space-y-2">
             <Chips items={data.genres} />
             <MetaRow label={fr.media.releaseDate} value={data.firstAirDate} />

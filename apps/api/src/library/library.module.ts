@@ -1,0 +1,23 @@
+import { Module } from '@nestjs/common';
+import { CatalogModule } from '../catalog/catalog.module';
+import { LibraryFilmsService } from './library-films.service';
+import { LibraryGamesService } from './library-games.service';
+import { LibrarySeriesService } from './library-series.service';
+import { LibraryController } from './library.controller';
+import { LibraryService } from './library.service';
+import { OverridesService } from './overrides.service';
+import { WorksService } from './works.service';
+
+@Module({
+  imports: [CatalogModule],
+  controllers: [LibraryController],
+  providers: [
+    LibraryService,
+    LibraryGamesService,
+    LibrarySeriesService,
+    LibraryFilmsService,
+    WorksService,
+    OverridesService,
+  ],
+})
+export class LibraryModule {}

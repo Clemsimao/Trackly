@@ -9,11 +9,14 @@ import {
 import {
   mapMovieDetail,
   mapMovieSearchResult,
+  mapSeasonEpisodes,
   mapTvDetail,
   mapTvSearchResult,
+  type ProviderEpisode,
   type TmdbMovieDetail,
   type TmdbSearchMovie,
   type TmdbSearchTv,
+  type TmdbSeasonDetail,
   type TmdbTvDetail,
 } from './tmdb.mappers';
 
@@ -54,6 +57,15 @@ export class TmdbClient {
   async getSeries(externalId: string): Promise<SeriesDetail> {
     const data = await this.get<TmdbTvDetail>(`/tv/${encodeURIComponent(externalId)}`, {});
     return mapTvDetail(data);
+  }
+
+  /** Épisodes d'une saison, avec runtime par épisode (Lot 3 — suivi et budget temps). */
+  async getSeasonEpisodes(externalId: string, seasonNumber: number): Promise<ProviderEpisode[]> {
+    const data = await this.get<TmdbSeasonDetail>(
+      `/tv/${encodeURIComponent(externalId)}/season/${seasonNumber}`,
+      {},
+    );
+    return mapSeasonEpisodes(data);
   }
 
   private async get<T>(path: string, params: Record<string, string>): Promise<T> {

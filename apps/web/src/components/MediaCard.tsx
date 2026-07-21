@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { SearchResultItem } from '@trackly/contracts';
 import { fr } from '../i18n/fr';
+import { QuickAddButton } from './library/AddToLibrary';
 
 const TYPE_STYLE: Record<SearchResultItem['mediaType'], string> = {
   game: 'bg-primary/15 text-primary',
@@ -19,8 +20,9 @@ export function MediaCard({ item }: { item: SearchResultItem }) {
     <Link
       to={TYPE_PATH[item.mediaType]}
       params={{ id: item.externalId }}
-      className="group overflow-hidden rounded-xl border border-(--border) bg-(--surface) transition hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+      className="group relative overflow-hidden rounded-xl border border-(--border) bg-(--surface) transition hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
     >
+      <QuickAddButton item={item} />
       <div className="aspect-[2/3] w-full bg-(--border)/40">
         {item.posterUrl ? (
           <img

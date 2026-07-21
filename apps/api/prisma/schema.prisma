@@ -1,5 +1,5 @@
-// Schéma Prisma — Lot 1 : comptes et sécurité (docs/cadrage/10 et 15).
-// Le catalogue arrive au Lot 2, le suivi au Lot 3.
+// Schéma Prisma — Lots 1 à 3 (docs/cadrage/10 et 15).
+// Lot 1 : comptes et sécurité. Lot 2 : cache catalogue. Lot 3 : bibliothèque et suivi.
 
 generator client {
   provider = "prisma-client-js"
@@ -20,6 +20,11 @@ model User {
 
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
+  gameEntries         GameEntry[]
+  seriesEntries       SeriesEntry[]
+  filmEntries         FilmEntry[]
+  episodeWatches      EpisodeWatch[]
+  fieldOverrides      FieldOverride[]
 
   @@map("users")
 }
@@ -64,4 +69,237 @@ model CatalogCache {
 
   @@index([expiresAt])
   @@map("catalog_cache")
+}
+
+// ── Lot 3 : catalogue partagé (œuvres) ──────────────────────────────────────
+// Une œuvre = snapshot normalisé du fournisseur (payload au format du contrat
+// *Detail). Partagée entre utilisateurs ; les données personnelles vivent dans
+// les entrées de bibliothèque. Rafraîchie à l'ajout si plus vieille que 7 j.
+
+model GameWork {
+  id          String   @id @default(uuid())
+  igdbId      String   @unique @map("igdb_id")
+  title       String
+  payload     Json
+  refreshedAt DateTime @map("refreshed_at")
+
+  entries GameEntry[]
+
+  @@map("game_works")
+}
+
+model SeriesWork {
+  id          String   @id @default(uuid())
+  tmdbId      String   @unique @map("tmdb_id")
+  title       String
+  payload     Json
+  refreshedAt DateTime @map("refreshed_at")
+
+  entries  SeriesEntry[]
+  episodes EpisodeRecord[]
+
+  @@map("series_works")
+}
+
+model FilmWork {
+  id          String   @id @default(uuid())
+  tmdbId      String   @unique @map("tmdb_id")
+  title       String
+  payload     Json
+  refreshedAt DateTime @map("refreshed_at")
+
+  entries FilmEntry[]
+
+  @@map("film_works")
+}
+
+// Épisodes d'une série, alimentés à la demande depuis /tv/{id}/season/{n}
+// (les runtimes par épisode — episode_run_time série n'est couvert qu'à 10 %).
+model EpisodeRecord {
+  id             String   @id @default(uuid())
+  seriesWorkId   String   @map("series_work_id")
+  seriesWork     SeriesWork @relation(fields: [seriesWorkId], references: [id], onDelete: Cascade)
+  seasonNumber   Int      @map("season_number")
+  episodeNumber  Int      @map("episode_number")
+  name           String
+  runtimeMinutes Int?     @map("runtime_minutes")
+  airDate        DateTime? @map("air_date") @db.Date
+
+  watches EpisodeWatch[]
+
+  @@unique([seriesWorkId, seasonNumber, episodeNumber])
+  @@map("episode_records")
+}
+
+// ── Lot 3 : suivi personnel — jeux ──────────────────────────────────────────
+
+// Statut d'une possession. Le statut « envie » n'existe pas ici : une entrée
+// sans possession EST la liste d'envies (décision phase A, docs/cadrage/02).
+enum OwnershipStatus {
+  BACKLOG
+  PLAYING
+  PAUSED
+  FINISHED
+  COMPLETED
+  DROPPED
+}
+
+enum CompletionTarget {
+  MAIN
+  MAIN_EXTRA
+  COMPLETIONIST
+}
+
+// L'avis sur un jeu (note, critique, favori) est unique par utilisateur ;
+// la progression vit dans les possessions (une par plateforme).
+model GameEntry {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameWorkId String   @map("game_work_id")
+  gameWork   GameWork @relation(fields: [gameWorkId], references: [id])
+  rating     Int?
+  review     String?
+  notes      String?
+  favorite   Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  ownerships GameOwnership[]
+
+  @@unique([userId, gameWorkId])
+  @@index([userId])
+  @@map("game_entries")
+}
+
+model GameOwnership {
+  id               String           @id @default(uuid())
+  entryId          String           @map("entry_id")
+  entry            GameEntry        @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  platform         String
+  status           OwnershipStatus  @default(BACKLOG)
+  hoursPlayed      Float            @default(0) @map("hours_played")
+  progressPercent  Int?             @map("progress_percent")
+  nextObjective    String?          @map("next_objective")
+  resumeNote       String?          @map("resume_note")
+  purchaseDate     DateTime?        @map("purchase_date") @db.Date
+  startedAt        DateTime?        @map("started_at") @db.Date
+  finishedAt       DateTime?        @map("finished_at") @db.Date
+  lastPlayedAt     DateTime?        @map("last_played_at") @db.Date
+  trophiesEarned   Int?             @map("trophies_earned")
+  trophiesTotal    Int?             @map("trophies_total")
+  completionTarget CompletionTarget @default(MAIN) @map("completion_target")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  progressUpdates GameProgressUpdate[]
+
+  @@unique([entryId, platform])
+  @@map("game_ownerships")
+}
+
+// Journal de progression (story C2) : une ligne par mise à jour significative.
+model GameProgressUpdate {
+  id              String        @id @default(uuid())
+  ownershipId     String        @map("ownership_id")
+  ownership       GameOwnership @relation(fields: [ownershipId], references: [id], onDelete: Cascade)
+  hoursPlayed     Float?        @map("hours_played")
+  progressPercent Int?          @map("progress_percent")
+  note            String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@index([ownershipId])
+  @@map("game_progress_updates")
+}
+
+// ── Lot 3 : suivi personnel — séries ────────────────────────────────────────
+
+enum SeriesStatus {
+  TO_WATCH
+  WATCHING
+  PAUSED
+  FINISHED
+  DROPPED
+}
+
+model SeriesEntry {
+  id           String       @id @default(uuid())
+  userId       String       @map("user_id")
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seriesWorkId String       @map("series_work_id")
+  seriesWork   SeriesWork   @relation(fields: [seriesWorkId], references: [id])
+  status       SeriesStatus @default(TO_WATCH)
+  rating       Int?
+  review       String?
+  notes        String?
+  favorite     Boolean      @default(false)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@unique([userId, seriesWorkId])
+  @@index([userId])
+  @@map("series_entries")
+}
+
+model EpisodeWatch {
+  id        String        @id @default(uuid())
+  userId    String        @map("user_id")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  episodeId String        @map("episode_id")
+  episode   EpisodeRecord @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  watchedAt DateTime      @default(now()) @map("watched_at")
+
+  @@unique([userId, episodeId])
+  @@index([userId])
+  @@map("episode_watches")
+}
+
+// ── Lot 3 : suivi personnel — films ─────────────────────────────────────────
+
+enum FilmStatus {
+  TO_WATCH
+  SEEN
+  DISLIKED
+  DROPPED
+  REJECTED
+}
+
+model FilmEntry {
+  id          String     @id @default(uuid())
+  userId      String     @map("user_id")
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filmWorkId  String     @map("film_work_id")
+  filmWork    FilmWork   @relation(fields: [filmWorkId], references: [id])
+  status      FilmStatus @default(TO_WATCH)
+  watchedAt   DateTime?  @map("watched_at") @db.Date
+  rewatch     Boolean    @default(false)
+  watchedWith String?    @map("watched_with")
+  rating      Int?
+  review      String?
+  notes       String?
+  favorite    Boolean    @default(false)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@unique([userId, filmWorkId])
+  @@index([userId])
+  @@map("film_entries")
+}
+
+// ── Lot 3 : provenance des données (exigence forte du cahier des charges) ───
+// Valeur personnelle qui remplace un champ du snapshot partagé.
+// source = manual (le fournisseur n'avait rien) | overridden (valeur remplacée).
+model FieldOverride {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  fieldName  String   @map("field_name")
+  value      Json
+  source     String
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, entityType, entityId, fieldName])
+  @@map("field_overrides")
 }

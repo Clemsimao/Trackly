@@ -12,6 +12,10 @@ import { meQueryOptions } from './api/auth';
 import { fr } from './i18n/fr';
 import { HomePage } from './pages/HomePage';
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from './pages/AuthPages';
+import { LibraryFilmPage } from './pages/LibraryFilmPage';
+import { LibraryGamePage } from './pages/LibraryGamePage';
+import { LibraryPage } from './pages/LibraryPage';
+import { LibrarySeriesPage } from './pages/LibrarySeriesPage';
 import { FilmDetailPage, GameDetailPage, SeriesDetailPage } from './pages/MediaDetailPages';
 import { SearchPage } from './pages/SearchPage';
 import { isDark, toggleTheme } from './theme';
@@ -38,6 +42,12 @@ function RootLayout() {
                 className="text-(--text-muted) hover:text-primary [&.active]:font-semibold [&.active]:text-primary"
               >
                 {fr.nav.home}
+              </Link>
+              <Link
+                to="/bibliotheque"
+                className="text-(--text-muted) hover:text-primary [&.active]:font-semibold [&.active]:text-primary"
+              >
+                {fr.nav.library}
               </Link>
               <Link
                 to="/recherche"
@@ -94,6 +104,34 @@ const rechercheRoute = createRoute({
   path: '/recherche',
   beforeLoad: requireAuth,
   component: SearchPage,
+});
+
+const bibliothequeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/bibliotheque',
+  beforeLoad: requireAuth,
+  component: LibraryPage,
+});
+
+const libraryGameRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/bibliotheque/jeu/$entryId',
+  beforeLoad: requireAuth,
+  component: LibraryGamePage,
+});
+
+const librarySeriesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/bibliotheque/serie/$entryId',
+  beforeLoad: requireAuth,
+  component: LibrarySeriesPage,
+});
+
+const libraryFilmRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/bibliotheque/film/$entryId',
+  beforeLoad: requireAuth,
+  component: LibraryFilmPage,
 });
 
 const gameDetailRoute = createRoute({
@@ -166,6 +204,10 @@ const reinitialisationRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   accueilRoute,
+  bibliothequeRoute,
+  libraryGameRoute,
+  librarySeriesRoute,
+  libraryFilmRoute,
   rechercheRoute,
   gameDetailRoute,
   filmDetailRoute,

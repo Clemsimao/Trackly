@@ -106,6 +106,32 @@ export interface TmdbTvDetail {
   }>;
 }
 
+export interface TmdbSeasonDetail {
+  episodes?: Array<{
+    episode_number: number;
+    name?: string | null;
+    runtime?: number | null;
+    air_date?: string | null;
+  }>;
+}
+
+/** Épisode normalisé côté fournisseur (le suivi personnel est greffé au Lot 3). */
+export interface ProviderEpisode {
+  episodeNumber: number;
+  name: string;
+  runtimeMinutes: number | null;
+  airDate: string | null;
+}
+
+export function mapSeasonEpisodes(season: TmdbSeasonDetail): ProviderEpisode[] {
+  return (season.episodes ?? []).map((episode) => ({
+    episodeNumber: episode.episode_number,
+    name: episode.name || `Épisode ${episode.episode_number}`,
+    runtimeMinutes: episode.runtime ?? null,
+    airDate: episode.air_date ?? null,
+  }));
+}
+
 export function mapTvDetail(tv: TmdbTvDetail): SeriesDetail {
   const seasons: SeasonSummary[] = (tv.seasons ?? [])
     // La saison 0 (« spéciaux ») fausserait le budget temps : exclue du suivi
