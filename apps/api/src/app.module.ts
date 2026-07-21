@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { SessionGuard } from './auth/session.guard';
 import { CatalogModule } from './catalog/catalog.module';
 import { AppThrottlerGuard } from './common/throttler.guard';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthModule } from './health/health.module';
 import { LibraryModule } from './library/library.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -31,6 +32,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AuthModule,
     CatalogModule,
     LibraryModule,
+    DashboardModule,
     HealthModule,
   ],
   providers: [

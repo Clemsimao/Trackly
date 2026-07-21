@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import type { SeasonState, SeriesEntryDetail, SeriesStatus } from '@trackly/contracts';
-import { seriesStatusSchema } from '@trackly/contracts';
+import { seriesRemaining, seriesStatusSchema } from '@trackly/contracts';
 import {
   deleteSeriesEntry,
   getSeasonEpisodes,
@@ -22,7 +22,7 @@ import {
   inputClass,
 } from '../components/library/shared';
 import { fr } from '../i18n/fr';
-import { formatMinutes } from '../utils/format';
+import { formatHoursFromSeconds, formatMinutes } from '../utils/format';
 
 export function LibrarySeriesPage() {
   const { entryId } = useParams({ from: '/bibliotheque/serie/$entryId' });
@@ -77,6 +77,7 @@ function SeriesEntryView({ entry }: { entry: SeriesEntryDetail }) {
           {fr.library.series.progress} : {entry.watchedEpisodes}/{entry.totalEpisodes}{' '}
           {fr.media.episodes} ({percent} %)
         </p>
+        <RemainingBadge entry={entry} />
       </div>
       <div
         role="progressbar"
@@ -103,6 +104,27 @@ function SeriesEntryView({ entry }: { entry: SeriesEntryDetail }) {
       />
       <DeleteEntryButton onDelete={() => deleteSeriesEntry(entry.entryId)} />
     </>
+  );
+}
+
+/**
+ * Estimation côté client : les runtimes réels des épisodes non chargés sont
+ * inconnus ici, d'où le repli sur la durée moyenne (le tableau de bord, lui,
+ * utilise les épisodes réels en base).
+ */
+function RemainingBadge({ entry }: { entry: SeriesEntryDetail }) {
+  if (entry.watchedEpisodes >= entry.totalEpisodes) return null;
+  const remaining = seriesRemaining({
+    totalEpisodes: entry.totalEpisodes,
+    watchedEpisodes: entry.watchedEpisodes,
+    knownUnwatchedRuntimesMinutes: [],
+    knownEpisodes: entry.watchedEpisodes,
+    seriesRuntimeMinutes: entry.work.episodeRunTimeMinutes,
+  });
+  return (
+    <span className="rounded-full bg-primary/15 px-2.5 py-1 text-sm font-semibold text-primary">
+      ≈ {formatHoursFromSeconds(remaining.seconds)} {fr.library.budget.remainingSuffix}
+    </span>
   );
 }
 

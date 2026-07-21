@@ -10,6 +10,7 @@ export * from './media';
 export * from './auth';
 export * from './catalog';
 export * from './library';
+export * from './time-budget';
 
 // ── Santé de l'API ──────────────────────────────────────────────────────────
 

@@ -2,13 +2,19 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import type {
+  CompletionTarget,
+  GameDurationsInput,
   GameEntryDetail,
   JournalEntry,
   OwnershipDetail,
   OwnershipStatus,
   UpdateOwnershipBody,
 } from '@trackly/contracts';
-import { ownershipStatusSchema, completionTargetSchema } from '@trackly/contracts';
+import {
+  completionTargetSchema,
+  gameRemainingSeconds,
+  ownershipStatusSchema,
+} from '@trackly/contracts';
 import {
   addOwnership,
   deleteGameEntry,
@@ -199,7 +205,7 @@ function OwnershipsSection({ entry }: { entry: GameEntryDetail }) {
     <Section title={fr.library.ownership.title}>
       <div className="space-y-4">
         {entry.ownerships.map((ownership) => (
-          <OwnershipCard key={ownership.id} ownership={ownership} />
+          <OwnershipCard key={ownership.id} ownership={ownership} durations={entry.durations} />
         ))}
         <AddOwnershipForm entryId={entry.entryId} platforms={entry.work.platforms} />
       </div>
@@ -207,7 +213,13 @@ function OwnershipsSection({ entry }: { entry: GameEntryDetail }) {
   );
 }
 
-function OwnershipCard({ ownership }: { ownership: OwnershipDetail }) {
+function OwnershipCard({
+  ownership,
+  durations,
+}: {
+  ownership: OwnershipDetail;
+  durations: GameDurationsInput;
+}) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     status: ownership.status as string,
@@ -270,7 +282,10 @@ function OwnershipCard({ ownership }: { ownership: OwnershipDetail }) {
       }}
     >
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">🎮 {ownership.platform}</h3>
+        <h3 className="font-semibold">
+          🎮 {ownership.platform}
+          <RemainingChip form={form} durations={durations} />
+        </h3>
         <button
           type="button"
           onClick={() => {
@@ -412,6 +427,27 @@ function OwnershipCard({ ownership }: { ownership: OwnershipDetail }) {
         <SaveButton pending={saveMutation.isPending} saved={saveMutation.isSuccess} />
       </div>
     </form>
+  );
+}
+
+/** Temps restant vers l'objectif, recalculé en direct pendant la saisie (moteur partagé). */
+function RemainingChip({
+  form,
+  durations,
+}: {
+  form: { status: string; completionTarget: string; hoursPlayed: string; progressPercent: string };
+  durations: GameDurationsInput;
+}) {
+  const remaining = gameRemainingSeconds(durations, form.completionTarget as CompletionTarget, {
+    status: form.status as OwnershipStatus,
+    hoursPlayed: form.hoursPlayed === '' ? 0 : Number(form.hoursPlayed),
+    progressPercent: form.progressPercent === '' ? null : Number(form.progressPercent),
+  });
+  if (remaining == null) return null;
+  return (
+    <span className="ml-2 rounded-full bg-primary/15 px-2.5 py-0.5 text-sm font-semibold text-primary">
+      ≈ {formatHoursFromSeconds(remaining)} {fr.library.budget.remainingSuffix}
+    </span>
   );
 }
 
