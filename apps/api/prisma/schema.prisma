@@ -52,3 +52,16 @@ model PasswordResetToken {
   @@index([userId])
   @@map("password_reset_tokens")
 }
+
+// Cache des réponses fournisseurs (Lot 2) : sert les recherches et fiches sans
+// re-frapper TMDB/IGDB, et permet de servir du périmé si un fournisseur tombe (RT-3).
+model CatalogCache {
+  id        String   @id @default(uuid())
+  cacheKey  String   @unique @map("cache_key")
+  payload   Json
+  fetchedAt DateTime @map("fetched_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@index([expiresAt])
+  @@map("catalog_cache")
+}

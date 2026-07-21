@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { logout, meQueryOptions } from '../api/auth';
 import { ApiStatus } from '../components/ApiStatus';
 import { fr } from '../i18n/fr';
@@ -25,6 +25,12 @@ export function HomePage() {
         </h1>
         <p className="mt-2 text-(--text-muted)">{fr.home.lotDone}</p>
         <p className="text-(--text-muted)">{fr.home.nextUp}</p>
+        <Link
+          to="/recherche"
+          className="mt-5 block rounded-xl border border-(--border) bg-(--bg) px-4 py-3 text-(--text-muted) transition hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+        >
+          🔍 {fr.home.searchCta}
+        </Link>
         <div className="mt-4">
           <ApiStatus />
         </div>
