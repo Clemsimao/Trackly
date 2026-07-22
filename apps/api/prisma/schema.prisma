@@ -18,6 +18,13 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  /// Suppression demandée (story A5) : le compte reste intact pendant le délai
+  /// de grâce, puis la purge l'efface. Null = aucune suppression en cours.
+  deletionRequestedAt DateTime? @map("deletion_requested_at")
+  /// Jeton d'annulation envoyé par e-mail, haché comme les jetons de session.
+  /// Permet d'annuler sans pouvoir se connecter.
+  deletionTokenHash String? @unique @map("deletion_token_hash")
+
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
   gameEntries         GameEntry[]

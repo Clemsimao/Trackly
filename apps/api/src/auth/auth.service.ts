@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { User } from '@prisma/client';
-import type { PublicUser } from '@trackly/contracts';
+import { DELETION_GRACE_DAYS, type PublicUser } from '@trackly/contracts';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { PasswordService } from './password.service';
@@ -14,7 +14,15 @@ export function toPublicUser(user: User): PublicUser {
     email: user.email,
     displayName: user.displayName,
     createdAt: user.createdAt.toISOString(),
+    // A5 : le front affiche un bandeau d'annulation tant que la purge n'a pas eu lieu.
+    deletionScheduledFor: deletionDeadline(user.deletionRequestedAt)?.toISOString() ?? null,
   };
+}
+
+/** Échéance de purge d'une demande de suppression, ou null si aucune n'est en cours. */
+export function deletionDeadline(requestedAt: Date | null): Date | null {
+  if (!requestedAt) return null;
+  return new Date(requestedAt.getTime() + DELETION_GRACE_DAYS * 24 * 60 * 60 * 1000);
 }
 
 @Injectable()

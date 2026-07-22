@@ -8,6 +8,14 @@ export const fr = {
     name: 'Trackly',
     tagline: 'Ta bibliothèque de jeux, séries et films',
   },
+  deletionCancel: {
+    title: 'Annuler la suppression de ton compte',
+    pending: 'Annulation en cours…',
+    success: 'C’est annulé. Ton compte Trackly et tes données sont conservés.',
+    error:
+      'Ce lien d’annulation n’est plus valable. Soit la suppression a déjà été annulée, soit le délai est écoulé.',
+    toLogin: 'Aller à la connexion',
+  },
   network: {
     offline: 'Hors connexion — tu consultes les dernières données chargées.',
     offlineShort: 'Hors connexion',
@@ -84,13 +92,21 @@ export const fr = {
     exportError: 'Export impossible pour le moment. Réessaie dans un instant.',
     dangerTitle: 'Supprimer mon compte',
     dangerHint:
-      'Suppression définitive et immédiate : compte, bibliothèque, progression, historique. Aucune récupération possible. Pense à exporter tes données avant.',
+      'Ton compte, ta bibliothèque, ta progression et ton historique seront effacés. Tu disposes de 7 jours pour changer d’avis : passé ce délai, l’effacement est définitif et rien n’est récupérable. Pense à exporter tes données avant.',
     dangerPasswordLabel: 'Confirme avec ton mot de passe',
-    dangerAction: 'Supprimer définitivement mon compte',
-    dangerPending: 'Suppression…',
+    dangerAction: 'Programmer la suppression de mon compte',
+    dangerPending: 'Enregistrement…',
     dangerConfirm:
-      'Dernière vérification : ton compte et toutes tes données seront effacés définitivement. Continuer ?',
-    deleted: 'Compte supprimé. Au revoir 👋',
+      'Ton compte sera effacé dans 7 jours. Tu recevras un e-mail permettant d’annuler jusqu’au dernier moment. Continuer ?',
+    // Suppression programmée (A5)
+    scheduledTitle: 'Suppression programmée',
+    scheduledOn: 'Ton compte et toutes tes données seront effacés le',
+    scheduledMail:
+      'Un e-mail t’a été envoyé : il contient un lien d’annulation utilisable même sans te connecter.',
+    cancelAction: 'Annuler la suppression',
+    cancelPending: 'Annulation…',
+    cancelError: 'Annulation impossible pour le moment. Réessaie dans un instant.',
+    cancelled: 'Suppression annulée. Ton compte est conservé.',
   },
   search: {
     title: 'Recherche',

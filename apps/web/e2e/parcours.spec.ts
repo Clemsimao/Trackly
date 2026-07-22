@@ -73,7 +73,9 @@ test('export RGPD : un JSON complet est téléchargé', async ({ page }) => {
   expect(data.profile.email).toBe(email);
 });
 
-test('suppression du compte : définitive, reconnexion impossible', async ({ page }) => {
+test('suppression du compte : programmée, annulable, session conservée (CA A5)', async ({
+  page,
+}) => {
   await page.goto('/connexion');
   await page.getByLabel(/e-mail/i).fill(email);
   await page.getByLabel(/mot de passe/i).fill(password);
@@ -83,13 +85,21 @@ test('suppression du compte : définitive, reconnexion impossible', async ({ pag
   await page.getByRole('link', { name: /mon compte/i }).click();
   await page.getByLabel(/confirme avec ton mot de passe/i).fill(password);
   page.on('dialog', (dialog) => void dialog.accept());
-  await page.getByRole('button', { name: /supprimer définitivement/i }).click();
-  await expect(page).toHaveURL(/\/connexion/);
+  await page.getByRole('button', { name: /programmer la suppression/i }).click();
 
-  // Le compte n'existe plus
-  await page.getByLabel(/e-mail/i).fill(email);
-  await page.getByLabel(/mot de passe/i).fill(password);
-  await page.getByRole('button', { name: /se connecter/i }).click();
-  await expect(page.getByRole('alert')).toBeVisible();
-  await expect(page).toHaveURL(/\/connexion/);
+  // Rien n'est effacé tout de suite : l'écran bascule sur l'échéance,
+  // et la session reste valide — sans quoi on ne pourrait pas annuler.
+  await expect(page.getByRole('heading', { name: /suppression programmée/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/compte/);
+
+  await page.reload();
+  await expect(page.getByRole('heading', { name: /suppression programmée/i })).toBeVisible();
+
+  // Retour en arrière : le formulaire de suppression réapparaît.
+  await page.getByRole('button', { name: /annuler la suppression/i }).click();
+  await expect(page.getByRole('button', { name: /programmer la suppression/i })).toBeVisible();
+
+  // Et le compte fonctionne toujours après reconnexion.
+  await page.goto('/accueil');
+  await expect(page).toHaveURL(/\/accueil/);
 });

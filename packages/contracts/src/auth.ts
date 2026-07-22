@@ -40,6 +40,8 @@ export const publicUserSchema = z.object({
   email: emailSchema,
   displayName: z.string(),
   createdAt: z.string().datetime(),
+  /** Date d'effacement prévue si une suppression est en cours (A5), sinon null. */
+  deletionScheduledFor: z.string().datetime().nullable().default(null),
 });
 export type PublicUser = z.infer<typeof publicUserSchema>;
 

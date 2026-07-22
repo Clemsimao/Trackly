@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
 import { meQueryOptions } from '../api/auth';
-import { deleteAccount, downloadExport } from '../api/account';
+import { cancelAccountDeletion, downloadExport, requestAccountDeletion } from '../api/account';
 import { ApiClientError } from '../api/client';
 import { fr } from '../i18n/fr';
 
@@ -20,10 +19,53 @@ export function AccountPage() {
       ) : null}
 
       <ExportSection />
-      <DangerSection />
+      {/* Tant qu'une suppression est en cours, on n'en propose pas une seconde :
+          seule l'annulation a du sens (A5). */}
+      {user?.deletionScheduledFor ? (
+        <ScheduledSection scheduledFor={user.deletionScheduledFor} />
+      ) : (
+        <DangerSection />
+      )}
     </main>
   );
 }
+
+/** Suppression programmée : l'écran ne propose plus que le retour en arrière. */
+function ScheduledSection({ scheduledFor }: { scheduledFor: string }) {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: cancelAccountDeletion,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: meQueryOptions.queryKey }),
+  });
+
+  return (
+    <section className="mt-6 rounded-2xl border border-dropped/40 bg-(--surface) p-5">
+      <h2 className="font-display text-lg font-semibold text-dropped">
+        {fr.account.scheduledTitle}
+      </h2>
+      <p className="mt-1 text-sm">
+        {fr.account.scheduledOn}{' '}
+        <strong>{new Date(scheduledFor).toLocaleDateString('fr-FR', DATE_LONGUE)}</strong>.
+      </p>
+      <p className="mt-1 text-sm text-(--text-muted)">{fr.account.scheduledMail}</p>
+      <button
+        type="button"
+        onClick={() => mutation.mutate()}
+        disabled={mutation.isPending}
+        className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-strong disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        {mutation.isPending ? fr.account.cancelPending : fr.account.cancelAction}
+      </button>
+      {mutation.isError ? (
+        <p role="alert" className="mt-2 text-sm text-dropped">
+          {fr.account.cancelError}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+const DATE_LONGUE = { day: 'numeric', month: 'long', year: 'numeric' } as const;
 
 /** RGPD — droit d'accès. */
 function ExportSection() {
@@ -52,15 +94,16 @@ function ExportSection() {
 
 /** RGPD — droit à l'effacement : mot de passe + confirmation explicite. */
 function DangerSection() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [password, setPassword] = useState('');
 
+  // La session est conservée : l'utilisateur doit pouvoir revenir annuler.
+  // On rafraîchit simplement le profil pour basculer sur l'écran « programmée ».
   const mutation = useMutation({
-    mutationFn: () => deleteAccount(password),
+    mutationFn: () => requestAccountDeletion(password),
     onSuccess: async () => {
-      queryClient.clear();
-      await navigate({ to: '/connexion' });
+      setPassword('');
+      await queryClient.invalidateQueries({ queryKey: meQueryOptions.queryKey });
     },
   });
 

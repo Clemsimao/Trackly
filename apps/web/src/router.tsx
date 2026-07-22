@@ -14,6 +14,7 @@ import { purgerCacheLocal } from './api/persist';
 import { OfflineBanner } from './components/OfflineBanner';
 import { fr } from './i18n/fr';
 import { AccountPage } from './pages/AccountPage';
+import { CancelDeletionPage } from './pages/CancelDeletionPage';
 import { HomePage } from './pages/HomePage';
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from './pages/AuthPages';
 import { LibraryFilmPage } from './pages/LibraryFilmPage';
@@ -267,6 +268,16 @@ const reinitialisationRoute = createRoute({
   component: ResetPasswordPage,
 });
 
+/** Lien d'annulation reçu par e-mail (A5) : accessible sans session. */
+const annulationSuppressionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/annulation-suppression',
+  validateSearch: (search: Record<string, unknown>): { token?: string } => ({
+    token: typeof search.token === 'string' ? search.token : undefined,
+  }),
+  component: CancelDeletionPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   accueilRoute,
@@ -283,6 +294,7 @@ const routeTree = rootRoute.addChildren([
   inscriptionRoute,
   motDePasseOublieRoute,
   reinitialisationRoute,
+  annulationSuppressionRoute,
 ]);
 
 export function createAppRouter(queryClient: QueryClient) {
