@@ -11,6 +11,6 @@ import { SessionService } from './session.service';
   imports: [MailModule],
   controllers: [AuthController],
   providers: [AuthService, PasswordService, SessionService, ResetTokenService, SessionGuard],
-  exports: [SessionService, SessionGuard],
+  exports: [SessionService, SessionGuard, PasswordService],
 })
 export class AuthModule {}

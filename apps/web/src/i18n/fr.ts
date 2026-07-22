@@ -66,6 +66,26 @@ export const fr = {
     library: 'Bibliothèque',
     search: 'Recherche',
   },
+  account: {
+    title: 'Mon compte',
+    link: 'Mon compte',
+    memberSince: 'Membre depuis le',
+    exportTitle: 'Mes données (RGPD)',
+    exportHint:
+      'Télécharge tout ce que Trackly connaît de toi : profil, bibliothèque, progression, journal, visionnages, durées modifiées. Format JSON lisible.',
+    exportAction: 'Télécharger mes données',
+    exportPending: 'Préparation…',
+    exportError: 'Export impossible pour le moment. Réessaie dans un instant.',
+    dangerTitle: 'Supprimer mon compte',
+    dangerHint:
+      'Suppression définitive et immédiate : compte, bibliothèque, progression, historique. Aucune récupération possible. Pense à exporter tes données avant.',
+    dangerPasswordLabel: 'Confirme avec ton mot de passe',
+    dangerAction: 'Supprimer définitivement mon compte',
+    dangerPending: 'Suppression…',
+    dangerConfirm:
+      'Dernière vérification : ton compte et toutes tes données seront effacés définitivement. Continuer ?',
+    deleted: 'Compte supprimé. Au revoir 👋',
+  },
   search: {
     title: 'Recherche',
     placeholder: 'Elden Ring, Dune, Severance…',

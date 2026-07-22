@@ -36,14 +36,22 @@ export function HomePage() {
         <div className="mt-4">
           <ApiStatus />
         </div>
-        <button
-          type="button"
-          onClick={() => logoutMutation.mutate()}
-          disabled={logoutMutation.isPending}
-          className="mt-6 rounded-lg border border-(--border) px-4 py-2 text-sm hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
-        >
-          {fr.auth.logoutAction}
-        </button>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            to="/compte"
+            className="rounded-lg border border-(--border) px-4 py-2 text-sm hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            {fr.account.link}
+          </Link>
+          <button
+            type="button"
+            onClick={() => logoutMutation.mutate()}
+            disabled={logoutMutation.isPending}
+            className="rounded-lg border border-(--border) px-4 py-2 text-sm hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            {fr.auth.logoutAction}
+          </button>
+        </div>
       </div>
     </main>
   );

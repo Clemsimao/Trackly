@@ -37,11 +37,54 @@ jobs:
       - name: Tests
         run: pnpm test
 
+  e2e:
+    name: Tests E2E (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: trackly
+          POSTGRES_PASSWORD: trackly
+          POSTGRES_DB: trackly_e2e
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U trackly"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://trackly:trackly@localhost:5432/trackly_e2e
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Migrations
+        run: pnpm --filter @trackly/api exec prisma migrate deploy
+
+      - name: Navigateur Playwright
+        run: pnpm --filter @trackly/web exec playwright install --with-deps chromium
+
+      - name: Parcours E2E
+        run: pnpm --filter @trackly/web run e2e
+
   docker:
     name: Images Docker → GHCR
     # Publication uniquement sur main : les images taggées latest + sha
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: quality
+    needs: [quality, e2e]
     runs-on: ubuntu-latest
     permissions:
       contents: read

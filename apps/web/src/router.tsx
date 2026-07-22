@@ -10,6 +10,7 @@ import {
 } from '@tanstack/react-router';
 import { meQueryOptions } from './api/auth';
 import { fr } from './i18n/fr';
+import { AccountPage } from './pages/AccountPage';
 import { HomePage } from './pages/HomePage';
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from './pages/AuthPages';
 import { LibraryFilmPage } from './pages/LibraryFilmPage';
@@ -104,6 +105,13 @@ const rechercheRoute = createRoute({
   path: '/recherche',
   beforeLoad: requireAuth,
   component: SearchPage,
+});
+
+const compteRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/compte',
+  beforeLoad: requireAuth,
+  component: AccountPage,
 });
 
 const bibliothequeRoute = createRoute({
@@ -204,6 +212,7 @@ const reinitialisationRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   accueilRoute,
+  compteRoute,
   bibliothequeRoute,
   libraryGameRoute,
   librarySeriesRoute,

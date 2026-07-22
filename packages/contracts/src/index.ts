@@ -11,6 +11,7 @@ export * from './auth';
 export * from './catalog';
 export * from './library';
 export * from './time-budget';
+export * from './account';
 
 // ── Santé de l'API ──────────────────────────────────────────────────────────
 
