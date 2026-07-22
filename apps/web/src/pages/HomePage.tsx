@@ -24,7 +24,7 @@ export function HomePage() {
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
       <p className="eyebrow text-(--text-muted)">{fr.home.eyebrow}</p>
       <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">
-        {fr.home.welcome} <span className="text-primary">{user?.displayName}</span>
+        {fr.home.welcome} <span className="text-link">{user?.displayName}</span>
       </h1>
 
       <Link
@@ -149,7 +149,7 @@ function SeeLibraryLink() {
   return (
     <Link
       to="/bibliotheque"
-      className="mt-4 inline-block text-sm font-semibold text-primary hover:underline"
+      className="mt-4 inline-block text-sm font-semibold text-link hover:underline"
     >
       {fr.library.home.seeLibrary}
     </Link>
@@ -227,7 +227,7 @@ function InProgressRow({ item }: { item: DashboardItem }) {
             <p className="truncate text-sm text-(--text-muted)">{item.subtitle}</p>
           ) : null}
         </div>
-        <span className="tabular shrink-0 rounded-full bg-primary/12 px-2.5 py-1 text-sm font-medium text-primary">
+        <span className="tabular shrink-0 rounded-full bg-primary/12 px-2.5 py-1 text-sm font-medium text-link">
           {item.remainingSeconds != null ? formatHoursFromSeconds(item.remainingSeconds) : '?'}
         </span>
       </Link>

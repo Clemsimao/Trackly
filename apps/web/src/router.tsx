@@ -47,7 +47,7 @@ function RootLayout() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="text-(--text-muted) hover:text-primary [&.active]:font-semibold [&.active]:text-primary"
+                  className="text-(--text-muted) hover:text-link [&.active]:font-semibold [&.active]:text-link"
                 >
                   {item.label}
                 </Link>
@@ -80,7 +80,7 @@ function RootLayout() {
             <Link
               key={item.to}
               to={item.to}
-              className="flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs text-(--text-muted) [&.active]:text-primary"
+              className="flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs text-(--text-muted) [&.active]:text-link"
             >
               <span aria-hidden className="text-lg leading-none">
                 {item.icon}

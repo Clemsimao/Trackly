@@ -11,16 +11,21 @@
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* Un seul accent : bleu net, réservé à l'interactif et aux repères clés */
-  --color-primary: oklch(0.58 0.19 262);
-  --color-primary-strong: oklch(0.52 0.2 262);
-  --color-accent: oklch(0.64 0.19 262);
+  /* Un seul accent : bleu net, réservé à l'interactif et aux repères clés.
+     Deux rôles distincts, car aucune teinte unique ne passe AA dans les deux modes :
+     - primary = APLAT (boutons, puces) surmonté de blanc → figé, blanc dessus 5.15:1
+     - link    = TEXTE sur le fond de page → éclairci par le bloc .dark */
+  --color-primary: oklch(0.545 0.19 262);
+  --color-primary-strong: oklch(0.5 0.2 262);
+  --color-link: oklch(0.53 0.19 262);
 
-  /* Statuts — réservés aux DONNÉES, désaturés pour rester discrets */
-  --color-progress: oklch(0.62 0.15 250);
-  --color-done: oklch(0.7 0.15 158);
-  --color-paused: oklch(0.72 0.08 80);
-  --color-dropped: oklch(0.63 0.19 25);
+  /* Statuts — réservés aux DONNÉES, désaturés pour rester discrets.
+     Même logique : ces valeurs sont celles du mode CLAIR, .dark les éclaircit.
+     Toutes calibrées ≥ 4.5:1 sur leur pastille teintée, le cas le plus défavorable. */
+  --color-progress: oklch(0.5 0.15 250);
+  --color-done: oklch(0.46 0.15 158); /* pastille « Vu » : teinte verte claire, cas le plus serré */
+  --color-paused: oklch(0.5 0.08 80);
+  --color-dropped: oklch(0.52 0.19 25);
 }
 
 /* Surfaces neutres (gris froid quasi sans teinte), consommées via bg-(--surface)… */
@@ -34,6 +39,13 @@
 }
 
 .dark {
+  /* Sur fond sombre les couleurs de texte s'éclaircissent ; l'aplat, lui, ne bouge pas */
+  --color-link: oklch(0.72 0.19 262);
+  --color-progress: oklch(0.7 0.15 250);
+  --color-done: oklch(0.7 0.15 158);
+  --color-paused: oklch(0.72 0.08 80);
+  --color-dropped: oklch(0.68 0.19 25);
+
   --bg: oklch(0.15 0.004 250);
   --surface: oklch(0.19 0.004 250);
   --surface-raised: oklch(0.225 0.005 250);

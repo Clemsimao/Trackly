@@ -34,13 +34,14 @@ export function LoginPage() {
       />
       <div className="mt-6 space-y-2 text-sm text-(--text-muted)">
         <p>
-          <Link to="/mot-de-passe-oublie" className="text-primary hover:underline">
+          <Link to="/mot-de-passe-oublie" className="text-link hover:underline">
             {fr.auth.forgotLink}
           </Link>
         </p>
         <p>
           {fr.auth.noAccount}{' '}
-          <Link to="/inscription" className="text-primary hover:underline">
+          {/* Lien au fil du texte : souligné en permanence, la couleur seule ne suffit pas (WCAG 1.4.1) */}
+          <Link to="/inscription" className="text-link underline underline-offset-2">
             {fr.auth.registerLink}
           </Link>
         </p>
@@ -62,8 +63,9 @@ export function RegisterPage() {
         }}
       />
       <p className="mt-6 text-sm text-(--text-muted)">
+        {/* Idem : lien au fil du texte */}
         {fr.auth.hasAccount}{' '}
-        <Link to="/connexion" className="text-primary hover:underline">
+        <Link to="/connexion" className="text-link underline underline-offset-2">
           {fr.auth.loginLink}
         </Link>
       </p>
@@ -76,7 +78,7 @@ export function ForgotPasswordPage() {
     <AuthCard title={fr.auth.forgotTitle}>
       <ForgotPasswordForm />
       <p className="mt-6 text-sm text-(--text-muted)">
-        <Link to="/connexion" className="text-primary hover:underline">
+        <Link to="/connexion" className="text-link hover:underline">
           {fr.auth.loginLink}
         </Link>
       </p>

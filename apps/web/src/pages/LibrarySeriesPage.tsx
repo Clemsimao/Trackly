@@ -122,7 +122,7 @@ function RemainingBadge({ entry }: { entry: SeriesEntryDetail }) {
     seriesRuntimeMinutes: entry.work.episodeRunTimeMinutes,
   });
   return (
-    <span className="rounded-full bg-primary/15 px-2.5 py-1 text-sm font-semibold text-primary">
+    <span className="rounded-full bg-primary/15 px-2.5 py-1 text-sm font-semibold text-link">
       ≈ {formatHoursFromSeconds(remaining.seconds)} {fr.library.budget.remainingSuffix}
     </span>
   );
@@ -159,7 +159,7 @@ function SeasonRow({ entryId, season }: { entryId: string; season: SeasonState }
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+        className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:text-link focus-visible:outline-2 focus-visible:outline-primary"
       >
         <span className="font-medium">
           {complete ? '✅ ' : ''}

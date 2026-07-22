@@ -4,7 +4,7 @@ import { fr } from '../i18n/fr';
 import { QuickAddButton } from './library/AddToLibrary';
 
 const TYPE_STYLE: Record<SearchResultItem['mediaType'], string> = {
-  game: 'bg-primary/15 text-primary',
+  game: 'bg-primary/15 text-link',
   film: 'bg-progress/15 text-progress',
   series: 'bg-done/15 text-done',
 };

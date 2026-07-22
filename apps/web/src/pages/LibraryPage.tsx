@@ -250,7 +250,7 @@ export function LibraryPage() {
         ) : rows.length === 0 ? (
           <p className="text-(--text-muted)">
             {fr.library.empty}{' '}
-            <Link to="/recherche" className="font-semibold text-primary hover:underline">
+            <Link to="/recherche" className="font-semibold text-link hover:underline">
               {fr.nav.search} →
             </Link>
           </p>
@@ -282,7 +282,7 @@ export function LibraryPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[row.status] ?? 'bg-primary/15 text-primary'}`}
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[row.status] ?? 'bg-primary/15 text-link'}`}
                       >
                         {row.statusLabel}
                       </span>

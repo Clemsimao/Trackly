@@ -377,7 +377,7 @@ function OwnershipCard({
       </div>
 
       <details className="mt-3">
-        <summary className="cursor-pointer text-sm text-(--text-muted) hover:text-primary">
+        <summary className="cursor-pointer text-sm text-(--text-muted) hover:text-link">
           {fr.library.ownership.moreDetails}
         </summary>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -445,7 +445,7 @@ function RemainingChip({
   });
   if (remaining == null) return null;
   return (
-    <span className="ml-2 rounded-full bg-primary/15 px-2.5 py-0.5 text-sm font-semibold text-primary">
+    <span className="ml-2 rounded-full bg-primary/15 px-2.5 py-0.5 text-sm font-semibold text-link">
       ≈ {formatHoursFromSeconds(remaining)} {fr.library.budget.remainingSuffix}
     </span>
   );
@@ -472,7 +472,7 @@ function AddOwnershipForm({ entryId, platforms }: { entryId: string; platforms: 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-dashed border-(--border) px-4 py-2 text-sm text-(--text-muted) transition hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+        className="rounded-lg border border-dashed border-(--border) px-4 py-2 text-sm text-(--text-muted) transition hover:border-primary hover:text-link focus-visible:outline-2 focus-visible:outline-primary"
       >
         {fr.library.ownership.addAction}
       </button>

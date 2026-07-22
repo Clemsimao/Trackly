@@ -143,7 +143,7 @@ export function AddToLibraryPanel({ mediaType, externalId, platforms = [] }: Pan
         <Link
           to={LIBRARY_PATH[mediaType]}
           params={{ entryId: existing }}
-          className="mt-1 inline-block text-sm font-semibold text-primary hover:underline"
+          className="mt-1 inline-block text-sm font-semibold text-link hover:underline"
         >
           {fr.library.openEntry}
         </Link>

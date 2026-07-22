@@ -16,7 +16,7 @@ export function LibraryShell({
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-6">
       <p className="mb-4">
-        <Link to="/bibliotheque" className="text-sm text-primary hover:underline">
+        <Link to="/bibliotheque" className="text-sm text-link hover:underline">
           {fr.library.backToLibrary}
         </Link>
       </p>
@@ -69,7 +69,7 @@ export function EntryHeader({
         />
       ) : null}
       <div>
-        <span className="inline-block rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary">
+        <span className="inline-block rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-link">
           {badge}
         </span>
         <h1 className="mt-1 font-display text-2xl font-semibold">{title}</h1>
