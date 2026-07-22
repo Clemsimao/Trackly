@@ -40,6 +40,10 @@ export default defineConfig({
             options: {
               cacheName: 'media-images',
               expiration: { maxEntries: 300, maxAgeSeconds: 30 * 24 * 3600 },
+              // TMDB et IGDB ne renvoient pas d'en-tête CORS : les réponses sont
+              // opaques (status 0). Sans ce réglage, Workbox n'accepte que les 200
+              // et ce cache reste vide — vérifié en prod le 2026-07-22.
+              cacheableResponse: { statuses: [0, 200] },
             },
           },
         ],
