@@ -16,7 +16,11 @@ function makeDeps() {
       delete: vi.fn().mockResolvedValue({}),
     },
     seriesWork: {
-      findUniqueOrThrow: vi.fn().mockResolvedValue({ id: 'w1', tmdbId: '1396', payload: {} }),
+      findUniqueOrThrow: vi.fn().mockResolvedValue({
+        id: 'w1',
+        tmdbId: '1396',
+        payload: { seasons: [{ seasonNumber: 1, episodeCount: 3 }] },
+      }),
     },
     episodeRecord: {
       findFirst: vi.fn(),
@@ -26,6 +30,7 @@ function makeDeps() {
       upsert: vi.fn().mockResolvedValue({}),
       deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
       createMany: vi.fn().mockResolvedValue({ count: 0 }),
+      count: vi.fn().mockResolvedValue(1),
     },
   };
   const works = { ensureSeasonEpisodes: vi.fn().mockResolvedValue(undefined) };
@@ -73,6 +78,73 @@ describe('LibrarySeriesService.markEpisode (story D1)', () => {
       airDate: yesterday,
     });
     await deps.service.markEpisode('u1', 'e1', 'ep1');
+    expect(deps.prisma.seriesEntry.update).toHaveBeenCalledWith({
+      where: { id: 'e1' },
+      data: { status: 'WATCHING' },
+    });
+  });
+
+  it('dernier épisode marqué → la série passe terminée (relevé en prod : 19/19 restait « en cours »)', async () => {
+    deps.prisma.seriesEntry.findFirst.mockResolvedValue({ ...entry, status: 'WATCHING' });
+    deps.prisma.episodeRecord.findFirst.mockResolvedValue({
+      id: 'ep3',
+      seriesWorkId: 'w1',
+      airDate: yesterday,
+    });
+    deps.prisma.episodeWatch.count.mockResolvedValue(3); // 3/3
+    await deps.service.markEpisode('u1', 'e1', 'ep3');
+    expect(deps.prisma.seriesEntry.update).toHaveBeenCalledWith({
+      where: { id: 'e1' },
+      data: { status: 'FINISHED' },
+    });
+  });
+
+  it('une série en pause dont tout a été vu passe quand même terminée', async () => {
+    deps.prisma.seriesEntry.findFirst.mockResolvedValue({ ...entry, status: 'PAUSED' });
+    deps.prisma.episodeRecord.findFirst.mockResolvedValue({
+      id: 'ep3',
+      seriesWorkId: 'w1',
+      airDate: yesterday,
+    });
+    deps.prisma.episodeWatch.count.mockResolvedValue(3);
+    await deps.service.markEpisode('u1', 'e1', 'ep3');
+    expect(deps.prisma.seriesEntry.update).toHaveBeenCalledWith({
+      where: { id: 'e1' },
+      data: { status: 'FINISHED' },
+    });
+  });
+
+  it('une série en pause partiellement vue reste en pause (choix explicite)', async () => {
+    deps.prisma.seriesEntry.findFirst.mockResolvedValue({ ...entry, status: 'PAUSED' });
+    deps.prisma.episodeRecord.findFirst.mockResolvedValue({
+      id: 'ep2',
+      seriesWorkId: 'w1',
+      airDate: yesterday,
+    });
+    deps.prisma.episodeWatch.count.mockResolvedValue(2); // 2/3
+    await deps.service.markEpisode('u1', 'e1', 'ep2');
+    expect(deps.prisma.seriesEntry.update).not.toHaveBeenCalled();
+  });
+
+  it('une série abandonnée n’est jamais réveillée automatiquement', async () => {
+    deps.prisma.seriesEntry.findFirst.mockResolvedValue({ ...entry, status: 'DROPPED' });
+    deps.prisma.episodeRecord.findFirst.mockResolvedValue({
+      id: 'ep3',
+      seriesWorkId: 'w1',
+      airDate: yesterday,
+    });
+    deps.prisma.episodeWatch.count.mockResolvedValue(3);
+    await deps.service.markEpisode('u1', 'e1', 'ep3');
+    expect(deps.prisma.seriesEntry.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('LibrarySeriesService.unmarkEpisode (retour en arrière)', () => {
+  it('démarquer un épisode d’une série terminée la remet en cours', async () => {
+    const deps = makeDeps();
+    deps.prisma.seriesEntry.findFirst.mockResolvedValue({ ...entry, status: 'FINISHED' });
+    deps.prisma.episodeWatch.count.mockResolvedValue(2); // 2/3 après retrait
+    await deps.service.unmarkEpisode('u1', 'e1', 'ep3');
     expect(deps.prisma.seriesEntry.update).toHaveBeenCalledWith({
       where: { id: 'e1' },
       data: { status: 'WATCHING' },

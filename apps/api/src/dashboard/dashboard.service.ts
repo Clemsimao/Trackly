@@ -166,6 +166,9 @@ export class DashboardService {
       const detail = entry.seriesWork.payload as unknown as SeriesDetail;
       const totalEpisodes = detail.seasons.reduce((sum, season) => sum + season.episodeCount, 0);
       const watched = watchedByWork.get(entry.seriesWorkId) ?? 0;
+      // Filet : une série intégralement vue n'est plus « en cours », même si son statut
+      // n'a pas encore été resynchronisé (entrées créées avant syncStatusWithProgress).
+      if (totalEpisodes > 0 && watched >= totalEpisodes) continue;
       const result = seriesRemaining({
         totalEpisodes,
         watchedEpisodes: watched,

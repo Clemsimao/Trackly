@@ -142,12 +142,13 @@ export class LibrarySeriesService {
       create: { userId, episodeId },
       update: {},
     });
-    await this.autoStartWatching(entry);
+    await this.syncStatusWithProgress(entry);
   }
 
   async unmarkEpisode(userId: string, entryId: string, episodeId: string): Promise<void> {
-    await this.findEntry(userId, entryId);
+    const entry = await this.findEntry(userId, entryId);
     await this.prisma.episodeWatch.deleteMany({ where: { userId, episodeId } });
+    await this.syncStatusWithProgress(entry);
   }
 
   /** Marque tous les épisodes déjà diffusés de la saison (CA D1 : saison entière). */
@@ -165,7 +166,7 @@ export class LibrarySeriesService {
       data: aired.map((episode) => ({ userId, episodeId: episode.id })),
       skipDuplicates: true,
     });
-    await this.autoStartWatching(entry);
+    await this.syncStatusWithProgress(entry);
   }
 
   async unmarkSeason(userId: string, entryId: string, seasonNumber: number): Promise<void> {
@@ -173,6 +174,7 @@ export class LibrarySeriesService {
     await this.prisma.episodeWatch.deleteMany({
       where: { userId, episode: { seriesWorkId: entry.seriesWorkId, seasonNumber } },
     });
+    await this.syncStatusWithProgress(entry);
   }
 
   async updateEntry(userId: string, entryId: string, body: UpdateSeriesEntryBody): Promise<void> {
@@ -192,13 +194,34 @@ export class LibrarySeriesService {
     await this.prisma.seriesEntry.delete({ where: { id: entryId } });
   }
 
-  /** Premier épisode marqué sur une série « à voir » : elle passe en cours. */
-  private async autoStartWatching(entry: SeriesEntry): Promise<void> {
-    if (entry.status === 'TO_WATCH') {
-      await this.prisma.seriesEntry.update({
-        where: { id: entry.id },
-        data: { status: 'WATCHING' },
-      });
+  /**
+   * Aligne le statut sur l'avancement réel, dans les deux sens :
+   * premier épisode marqué sur une série « à voir » → en cours ;
+   * dernier épisode marqué → terminée ; épisode démarqué (ou saison ajoutée
+   * au catalogue) sur une série terminée → de nouveau en cours.
+   *
+   * « En pause » et « abandonnée » sont des choix explicites : on n'y touche pas,
+   * sauf si tout a été vu — auquel cas la série est terminée, quoi qu'il arrive.
+   */
+  private async syncStatusWithProgress(entry: SeriesEntry): Promise<void> {
+    if (entry.status === 'DROPPED') return;
+
+    const work = await this.prisma.seriesWork.findUniqueOrThrow({
+      where: { id: entry.seriesWorkId },
+    });
+    const detail = work.payload as unknown as SeriesDetail;
+    const totalEpisodes = detail.seasons.reduce((sum, season) => sum + season.episodeCount, 0);
+    const watched = await this.prisma.episodeWatch.count({
+      where: { userId: entry.userId, episode: { seriesWorkId: entry.seriesWorkId } },
+    });
+
+    let next: SeriesStatus | null = null;
+    if (totalEpisodes > 0 && watched >= totalEpisodes) next = 'FINISHED';
+    else if (entry.status === 'FINISHED') next = 'WATCHING';
+    else if (entry.status === 'TO_WATCH' && watched > 0) next = 'WATCHING';
+
+    if (next && next !== entry.status) {
+      await this.prisma.seriesEntry.update({ where: { id: entry.id }, data: { status: next } });
     }
   }
 

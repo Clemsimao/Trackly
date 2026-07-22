@@ -47,6 +47,21 @@ describe('mappers IGDB', () => {
     expect(mapTimeToBeat({ count: 0 })).toBeNull();
   });
 
+  it('durées : triplet incohérent écarté plutôt que budgété faux', () => {
+    // Valeurs réelles d'IGDB pour The Legend of Zelda (relevé prod 2026-07-22) :
+    // « histoire principale » 11 h 56 > « + annexes » 6 h 30 → données communautaires fausses.
+    expect(
+      mapTimeToBeat({ hastily: 42960, normally: 23400, completely: 28800, count: 4 }),
+    ).toBeNull();
+  });
+
+  it('durées : la monotonie s’évalue sur les seules valeurs présentes', () => {
+    // main absent : 200 ≤ 300 reste cohérent, on conserve
+    expect(mapTimeToBeat({ normally: 200, completely: 300, count: 5 })?.mainSeconds).toBeNull();
+    // un trou ne masque pas une inversion entre les deux valeurs connues
+    expect(mapTimeToBeat({ hastily: 500, completely: 300, count: 5 })).toBeNull();
+  });
+
   it('captures d’écran limitées à 6', () => {
     const many = {
       ...gameDetail,

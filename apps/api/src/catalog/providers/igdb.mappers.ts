@@ -65,6 +65,13 @@ export interface IgdbTimeToBeat {
 /**
  * Correspondance IGDB → objectif de complétion Trackly (docs/cadrage/05) :
  * hastily = histoire principale, normally = histoire + annexes, completely = 100 %.
+ *
+ * Les durées IGDB sont communautaires : sur les jeux peu renseignés elles sortent
+ * parfois incohérentes (relevé en prod le 2026-07-22 sur The Legend of Zelda :
+ * principale 12 h > + annexes 6 h 30). Un objectif plus large ne peut pas être
+ * plus court qu'un objectif plus étroit : dans ce cas on écarte tout le triplet
+ * plutôt que d'afficher — et surtout de budgéter — une valeur fausse. Le jeu
+ * bascule alors dans « à estimer », et les durées restent saisissables à la main.
  */
 export function mapTimeToBeat(ttb: IgdbTimeToBeat | undefined): TimeToBeat | null {
   if (!ttb) return null;
@@ -72,12 +79,24 @@ export function mapTimeToBeat(ttb: IgdbTimeToBeat | undefined): TimeToBeat | nul
   const mainExtra = ttb.normally ?? null;
   const completionist = ttb.completely ?? null;
   if (main === null && mainExtra === null && completionist === null) return null;
+  if (!isMonotonic([main, mainExtra, completionist])) return null;
   return {
     mainSeconds: main,
     mainExtraSeconds: mainExtra,
     completionistSeconds: completionist,
     submissionCount: ttb.count ?? 0,
   };
+}
+
+/** Les durées présentes doivent croître avec l'ampleur de l'objectif (les trous sont ignorés). */
+function isMonotonic(durations: Array<number | null>): boolean {
+  let previous = Number.NEGATIVE_INFINITY;
+  for (const value of durations) {
+    if (value == null) continue;
+    if (value < previous) return false;
+    previous = value;
+  }
+  return true;
 }
 
 export function mapGameDetail(game: IgdbGameDetail, ttb: IgdbTimeToBeat | undefined): GameDetail {

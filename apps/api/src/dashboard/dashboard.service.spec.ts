@@ -26,13 +26,15 @@ function makePrisma(data: {
   seriesEntries?: unknown[];
   filmEntries?: unknown[];
   overrides?: unknown[];
+  /** Épisodes vus, sous la forme renvoyée par Prisma : { episode: { seriesWorkId } } */
+  episodeWatches?: unknown[];
 }) {
   return {
     gameEntry: { findMany: vi.fn().mockResolvedValue(data.gameEntries ?? []) },
     seriesEntry: { findMany: vi.fn().mockResolvedValue(data.seriesEntries ?? []) },
     filmEntry: { findMany: vi.fn().mockResolvedValue(data.filmEntries ?? []) },
     fieldOverride: { findMany: vi.fn().mockResolvedValue(data.overrides ?? []) },
-    episodeWatch: { findMany: vi.fn().mockResolvedValue([]) },
+    episodeWatch: { findMany: vi.fn().mockResolvedValue(data.episodeWatches ?? []) },
     episodeRecord: {
       groupBy: vi.fn().mockResolvedValue([]),
       findMany: vi.fn().mockResolvedValue([]),
@@ -179,6 +181,34 @@ describe('DashboardService — assemblage du budget temps', () => {
       seconds: 8 * 50 * 60,
       estimated: true,
     });
+  });
+
+  it('série intégralement vue → hors « en ce moment », même restée en statut WATCHING', async () => {
+    // Cas relevé en prod le 2026-07-22 : Severance, 19/19 ép., 0 h restante,
+    // trônait en tête de « En ce moment » à cause du tri par temps croissant.
+    const prisma = makePrisma({
+      seriesEntries: [
+        {
+          id: 's1',
+          seriesWorkId: 'sw1',
+          status: 'WATCHING',
+          seriesWork: {
+            payload: {
+              mediaType: 'series',
+              title: 'Severance',
+              posterUrl: null,
+              episodeRunTimeMinutes: 50,
+              seasons: [{ seasonNumber: 1, name: 'S1', episodeCount: 19, airDate: null }],
+            },
+          },
+        },
+      ],
+      episodeWatches: Array.from({ length: 19 }, () => ({ episode: { seriesWorkId: 'sw1' } })),
+    });
+    const dashboard = await new DashboardService(prisma).getDashboard('u1');
+    expect(dashboard.inProgress).toHaveLength(0);
+    expect(dashboard.series.inProgress.count).toBe(0);
+    expect(dashboard.totalSeconds).toBe(0);
   });
 
   it('les « en cours » sont triés par temps restant croissant', async () => {
