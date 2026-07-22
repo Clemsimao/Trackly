@@ -8,6 +8,7 @@ import {
   Outlet,
   redirect,
 } from '@tanstack/react-router';
+import type { PublicUser } from '@trackly/contracts';
 import { meQueryOptions } from './api/auth';
 import { purgerCacheLocal } from './api/persist';
 import { OfflineBanner } from './components/OfflineBanner';
@@ -105,7 +106,16 @@ const NAV_ITEMS = [
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({ component: RootLayout });
 
-/** Session exigée, sinon renvoi vers la connexion avec retour après login. */
+/**
+ * Session exigée, sinon renvoi vers la connexion avec retour après login.
+ *
+ * Distinction essentielle au hors-ligne : « l'API répond que tu n'es pas
+ * connecté » et « l'API ne répond pas » ne sont pas la même chose.
+ * - réponse autoritaire sans utilisateur → session finie, on purge et on sort ;
+ * - échec réseau → on se rabat sur la session restaurée du cache local, ce qui
+ *   permet de consulter hors connexion (CA G1). Sans ce repli, le `fetch` qui
+ *   échoue remonte jusqu'au routeur et affiche un écran d'erreur.
+ */
 async function requireAuth({
   context,
   location,
@@ -113,12 +123,31 @@ async function requireAuth({
   context: RouterContext;
   location: { href: string };
 }) {
-  const user = await context.queryClient.ensureQueryData(meQueryOptions);
+  const versConnexion = () => redirect({ to: '/connexion', search: { redirect: location.href } });
+  const enCache = () => context.queryClient.getQueryData(meQueryOptions.queryKey);
+
+  // Hors ligne, React Query met la requête en pause au lieu de la rejeter :
+  // sans ce court-circuit, `ensureQueryData` resterait en attente indéfiniment
+  // et la route ne se résoudrait jamais.
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    if (enCache()) return;
+    throw versConnexion();
+  }
+
+  let user: PublicUser | null;
+  try {
+    user = await context.queryClient.ensureQueryData(meQueryOptions);
+  } catch {
+    // `navigator.onLine` peut mentir (interface active, Internet injoignable).
+    if (enCache()) return;
+    throw versConnexion();
+  }
+
   if (!user) {
     // Session expirée ou révoquée ailleurs : le cache hors ligne ne doit pas
     // laisser la bibliothèque de l'utilisateur précédent sur l'appareil.
     await purgerCacheLocal(context.queryClient);
-    throw redirect({ to: '/connexion', search: { redirect: location.href } });
+    throw versConnexion();
   }
 }
 
