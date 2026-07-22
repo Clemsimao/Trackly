@@ -17,7 +17,9 @@
      - link    = TEXTE sur le fond de page → éclairci par le bloc .dark */
   --color-primary: oklch(0.545 0.19 262);
   --color-primary-strong: oklch(0.5 0.2 262);
-  --color-link: oklch(0.53 0.19 262);
+  /* 0.51 et non 0.53 : les pastilles bg-primary/15 des fiches sont plus denses
+     que celles de l'accueil (4.34:1 mesuré à 0.53). Ici ≥ 4.77:1 sur tous les fonds. */
+  --color-link: oklch(0.51 0.19 262);
 
   /* Statuts — réservés aux DONNÉES, désaturés pour rester discrets.
      Même logique : ces valeurs sont celles du mode CLAIR, .dark les éclaircit.

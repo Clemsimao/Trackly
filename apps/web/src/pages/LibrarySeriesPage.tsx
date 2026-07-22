@@ -81,9 +81,11 @@ function SeriesEntryView({ entry }: { entry: SeriesEntryDetail }) {
       </div>
       <div
         role="progressbar"
+        aria-label={fr.library.series.progress}
         aria-valuenow={percent}
         aria-valuemin={0}
         aria-valuemax={100}
+        aria-valuetext={`${entry.watchedEpisodes}/${entry.totalEpisodes} ${fr.media.episodes}`}
         className="mt-2 h-2 overflow-hidden rounded-full bg-(--border)/60"
       >
         <div className="h-full bg-primary transition-all" style={{ width: `${percent}%` }} />
