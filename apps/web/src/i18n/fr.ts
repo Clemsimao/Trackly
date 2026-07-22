@@ -8,6 +8,11 @@ export const fr = {
     name: 'Trackly',
     tagline: 'Ta bibliothèque de jeux, séries et films',
   },
+  network: {
+    offline: 'Hors connexion — tu consultes les dernières données chargées.',
+    offlineShort: 'Hors connexion',
+    backOnline: 'Connexion rétablie.',
+  },
   theme: {
     toLight: 'Passer en mode clair',
     toDark: 'Passer en mode sombre',

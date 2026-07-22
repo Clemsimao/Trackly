@@ -4,6 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // Invalide le cache hors ligne à chaque build : un état persisté ne peut jamais
+  // survivre à un changement de forme des données (cf. src/api/persist.ts).
+  define: { __BUILD_ID__: JSON.stringify(Date.now().toString(36)) },
   plugins: [
     react(),
     tailwindcss(),

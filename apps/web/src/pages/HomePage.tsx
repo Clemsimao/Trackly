@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tansta
 import { Link, useNavigate } from '@tanstack/react-router';
 import type { DashboardItem, DashboardResponse, MediaType } from '@trackly/contracts';
 import { logout, meQueryOptions } from '../api/auth';
+import { purgerCacheLocal } from '../api/persist';
 import { getDashboard } from '../api/dashboard';
 import { ApiStatus } from '../components/ApiStatus';
 import { fr } from '../i18n/fr';
@@ -15,6 +16,8 @@ export function HomePage() {
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: async () => {
+      // Le cache hors ligne contient la bibliothèque : il ne survit pas à la déconnexion.
+      await purgerCacheLocal(queryClient);
       queryClient.setQueryData(meQueryOptions.queryKey, null);
       await navigate({ to: '/connexion' });
     },

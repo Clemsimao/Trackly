@@ -9,6 +9,8 @@ import {
   redirect,
 } from '@tanstack/react-router';
 import { meQueryOptions } from './api/auth';
+import { purgerCacheLocal } from './api/persist';
+import { OfflineBanner } from './components/OfflineBanner';
 import { fr } from './i18n/fr';
 import { AccountPage } from './pages/AccountPage';
 import { HomePage } from './pages/HomePage';
@@ -31,11 +33,12 @@ function RootLayout() {
 
   return (
     <div className="flex min-h-dvh flex-col pb-16 sm:pb-0">
+      <OfflineBanner />
       <header className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 px-6 py-5">
         <div className="flex items-center gap-6">
           <Link to="/" className="font-display text-2xl font-semibold tracking-tight text-(--text)">
             {fr.app.name}
-            <span className="text-accent">.</span>
+            <span className="text-link">.</span>
           </Link>
           {/* Nav inline sur desktop ; sur mobile elle passe en barre d'onglets en bas */}
           {user ? (
@@ -112,6 +115,9 @@ async function requireAuth({
 }) {
   const user = await context.queryClient.ensureQueryData(meQueryOptions);
   if (!user) {
+    // Session expirée ou révoquée ailleurs : le cache hors ligne ne doit pas
+    // laisser la bibliothèque de l'utilisateur précédent sur l'appareil.
+    await purgerCacheLocal(context.queryClient);
     throw redirect({ to: '/connexion', search: { redirect: location.href } });
   }
 }

@@ -88,7 +88,7 @@ function TimeToBeatCards({ ttb }: { ttb: TimeToBeat | null }) {
             className="rounded-xl border border-(--border) bg-(--surface) p-3 text-center"
           >
             <p className="text-xs text-(--text-muted)">{entry.label}</p>
-            <p className="tabular mt-1 text-xl text-accent">
+            <p className="tabular mt-1 text-xl text-link">
               {entry.seconds ? `≈ ${formatHoursFromSeconds(entry.seconds)}` : '—'}
             </p>
           </div>
