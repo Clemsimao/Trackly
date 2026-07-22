@@ -30,33 +30,28 @@ function RootLayout() {
   const { data: user } = useQuery(meQueryOptions);
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="mx-auto flex w-full max-w-4xl items-center justify-between px-6 py-5">
-        <div className="flex items-center gap-5">
+    <div className="flex min-h-dvh flex-col pb-16 sm:pb-0">
+      <header className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 px-6 py-5">
+        <div className="flex items-center gap-6">
           <Link to="/" className="font-display text-2xl font-semibold tracking-tight text-(--text)">
             {fr.app.name}
             <span className="text-accent">.</span>
           </Link>
+          {/* Nav inline sur desktop ; sur mobile elle passe en barre d'onglets en bas */}
           {user ? (
-            <nav className="flex items-center gap-4 text-sm" aria-label="Navigation principale">
-              <Link
-                to="/accueil"
-                className="text-(--text-muted) hover:text-primary [&.active]:font-semibold [&.active]:text-primary"
-              >
-                {fr.nav.home}
-              </Link>
-              <Link
-                to="/bibliotheque"
-                className="text-(--text-muted) hover:text-primary [&.active]:font-semibold [&.active]:text-primary"
-              >
-                {fr.nav.library}
-              </Link>
-              <Link
-                to="/recherche"
-                className="text-(--text-muted) hover:text-primary [&.active]:font-semibold [&.active]:text-primary"
-              >
-                {fr.nav.search}
-              </Link>
+            <nav
+              className="hidden items-center gap-5 text-sm sm:flex"
+              aria-label="Navigation principale"
+            >
+              {NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="text-(--text-muted) hover:text-primary [&.active]:font-semibold [&.active]:text-primary"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </nav>
           ) : null}
         </div>
@@ -64,7 +59,7 @@ function RootLayout() {
           type="button"
           onClick={() => setDark(toggleTheme())}
           aria-label={dark ? fr.theme.toLight : fr.theme.toDark}
-          className="rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-sm hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+          className="shrink-0 rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-sm hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
         >
           {dark ? fr.theme.light : fr.theme.dark}
         </button>
@@ -74,9 +69,36 @@ function RootLayout() {
         <p>{fr.app.tagline}</p>
         <p className="text-xs">{fr.media.attributionTmdb}</p>
       </footer>
+
+      {/* Barre d'onglets mobile — navigation au pouce, comme une app native */}
+      {user ? (
+        <nav
+          className="fixed inset-x-0 bottom-0 z-20 flex border-t border-(--border) bg-(--surface)/95 backdrop-blur sm:hidden"
+          aria-label="Navigation mobile"
+        >
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs text-(--text-muted) [&.active]:text-primary"
+            >
+              <span aria-hidden className="text-lg leading-none">
+                {item.icon}
+              </span>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
     </div>
   );
 }
+
+const NAV_ITEMS = [
+  { to: '/accueil', label: fr.nav.home, icon: '🏠' },
+  { to: '/bibliotheque', label: fr.nav.library, icon: '📚' },
+  { to: '/recherche', label: fr.nav.search, icon: '🔍' },
+] as const;
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({ component: RootLayout });
 
