@@ -1,6 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { LibraryBooksService } from '../library/library-books.service';
 import type { PrismaService } from '../prisma/prisma.service';
 import { DashboardService } from './dashboard.service';
+
+/** Vitesse non calibrée par défaut : les tests livres la fixent explicitement. */
+function makeLibraryBooks(pagesPerHour: number | null = null) {
+  return {
+    userPagesPerHour: vi.fn().mockResolvedValue(pagesPerHour),
+  } as unknown as LibraryBooksService;
+}
 
 const H = 3600;
 
@@ -25,6 +33,7 @@ function makePrisma(data: {
   gameEntries?: unknown[];
   seriesEntries?: unknown[];
   filmEntries?: unknown[];
+  bookEntries?: unknown[];
   overrides?: unknown[];
   /** Épisodes vus, sous la forme renvoyée par Prisma : { episode: { seriesWorkId } } */
   episodeWatches?: unknown[];
@@ -33,6 +42,7 @@ function makePrisma(data: {
     gameEntry: { findMany: vi.fn().mockResolvedValue(data.gameEntries ?? []) },
     seriesEntry: { findMany: vi.fn().mockResolvedValue(data.seriesEntries ?? []) },
     filmEntry: { findMany: vi.fn().mockResolvedValue(data.filmEntries ?? []) },
+    bookEntry: { findMany: vi.fn().mockResolvedValue(data.bookEntries ?? []) },
     fieldOverride: { findMany: vi.fn().mockResolvedValue(data.overrides ?? []) },
     episodeWatch: { findMany: vi.fn().mockResolvedValue(data.episodeWatches ?? []) },
     episodeRecord: {
@@ -96,7 +106,7 @@ describe('DashboardService — assemblage du budget temps', () => {
         },
       ],
     });
-    const dashboard = await new DashboardService(prisma).getDashboard('u1');
+    const dashboard = await new DashboardService(prisma, makeLibraryBooks()).getDashboard('u1');
 
     expect(dashboard.games.inProgress).toMatchObject({ count: 1, seconds: 6 * H });
     expect(dashboard.games.backlog).toMatchObject({ count: 1, seconds: 20 * H });
@@ -128,7 +138,7 @@ describe('DashboardService — assemblage du budget temps', () => {
         { entityId: 'w1', fieldName: 'mainSeconds', value: 15 * H, source: 'overridden' },
       ],
     });
-    const dashboard = await new DashboardService(prisma).getDashboard('u1');
+    const dashboard = await new DashboardService(prisma, makeLibraryBooks()).getDashboard('u1');
     expect(dashboard.games.inProgress.seconds).toBe(15 * H);
   });
 
@@ -151,7 +161,7 @@ describe('DashboardService — assemblage du budget temps', () => {
         },
       ],
     });
-    const dashboard = await new DashboardService(prisma).getDashboard('u1');
+    const dashboard = await new DashboardService(prisma, makeLibraryBooks()).getDashboard('u1');
     expect(dashboard.games.backlog).toMatchObject({ count: 1, seconds: 0, unknownCount: 1 });
     expect(dashboard.totalEstimated).toBe(true);
   });
@@ -175,7 +185,7 @@ describe('DashboardService — assemblage du budget temps', () => {
         },
       ],
     });
-    const dashboard = await new DashboardService(prisma).getDashboard('u1');
+    const dashboard = await new DashboardService(prisma, makeLibraryBooks()).getDashboard('u1');
     expect(dashboard.series.toWatch).toMatchObject({
       count: 1,
       seconds: 8 * 50 * 60,
@@ -205,7 +215,7 @@ describe('DashboardService — assemblage du budget temps', () => {
       ],
       episodeWatches: Array.from({ length: 19 }, () => ({ episode: { seriesWorkId: 'sw1' } })),
     });
-    const dashboard = await new DashboardService(prisma).getDashboard('u1');
+    const dashboard = await new DashboardService(prisma, makeLibraryBooks()).getDashboard('u1');
     expect(dashboard.inProgress).toHaveLength(0);
     expect(dashboard.series.inProgress.count).toBe(0);
     expect(dashboard.totalSeconds).toBe(0);
@@ -244,7 +254,87 @@ describe('DashboardService — assemblage du budget temps', () => {
         },
       ],
     });
-    const dashboard = await new DashboardService(prisma).getDashboard('u1');
+    const dashboard = await new DashboardService(prisma, makeLibraryBooks()).getDashboard('u1');
     expect(dashboard.inProgress.map((i) => i.title)).toEqual(['Court', 'Long']);
+  });
+});
+
+describe('DashboardService — livres (docs/cadrage/17)', () => {
+  const bookWork = (title: string, medianPages: number | null) => ({
+    payload: { mediaType: 'book', title, coverUrl: null, medianPages },
+  });
+
+  it('répartit lecture en cours / pile à lire, vitesse calibrée appliquée', async () => {
+    const prisma = makePrisma({
+      bookEntries: [
+        {
+          id: 'b1',
+          status: 'READING',
+          bookWork: bookWork('En cours', 300),
+          pagesTotal: 300,
+          currentPage: 100,
+          progressPercent: null,
+        },
+        {
+          id: 'b2',
+          status: 'TO_READ',
+          bookWork: bookWork('À lire', 200),
+          pagesTotal: 200,
+          currentPage: 0,
+          progressPercent: null,
+        },
+        {
+          id: 'b3',
+          status: 'FINISHED',
+          bookWork: bookWork('Fini', 400),
+          pagesTotal: 400,
+          currentPage: 400,
+          progressPercent: null,
+        },
+      ],
+    });
+    // 40 p/h calibrées : 200 p restantes → 5 h ; pile à lire 200 p → 5 h
+    const dashboard = await new DashboardService(prisma, makeLibraryBooks(40)).getDashboard('u1');
+
+    expect(dashboard.books.inProgress).toMatchObject({ count: 1, seconds: 5 * H });
+    expect(dashboard.books.toRead).toMatchObject({ count: 1, seconds: 5 * H });
+    expect(dashboard.books.inProgress.estimated).toBe(false);
+    expect(dashboard.totalSeconds).toBe(10 * H);
+    expect(dashboard.inProgress.map((i) => i.title)).toEqual(['En cours']);
+    expect(dashboard.inProgress[0]?.subtitle).toBe('p. 100/300');
+  });
+
+  it('sans calibration : repli 30 p/h, signalé estimé ; pages inconnues → à estimer', async () => {
+    const prisma = makePrisma({
+      bookEntries: [
+        {
+          id: 'b1',
+          status: 'READING',
+          bookWork: bookWork('Repli', 300),
+          pagesTotal: 300,
+          currentPage: 0,
+          progressPercent: null,
+        },
+        {
+          id: 'b2',
+          status: 'TO_READ',
+          bookWork: bookWork('Sans pages', null),
+          pagesTotal: null,
+          currentPage: 0,
+          progressPercent: null,
+        },
+      ],
+    });
+    const dashboard = await new DashboardService(prisma, makeLibraryBooks(null)).getDashboard('u1');
+
+    // 300 p à 30 p/h → 10 h, marqué estimé (vitesse de repli)
+    expect(dashboard.books.inProgress).toMatchObject({
+      count: 1,
+      seconds: 10 * H,
+      estimated: true,
+    });
+    // pagesTotal null : compté mais exclu du total, signalé à estimer
+    expect(dashboard.books.toRead).toMatchObject({ count: 1, seconds: 0, unknownCount: 1 });
+    expect(dashboard.totalEstimated).toBe(true);
   });
 });

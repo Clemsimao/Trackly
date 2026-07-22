@@ -30,6 +30,7 @@ model User {
   gameEntries         GameEntry[]
   seriesEntries       SeriesEntry[]
   filmEntries         FilmEntry[]
+  bookEntries         BookEntry[]
   episodeWatches      EpisodeWatch[]
   fieldOverrides      FieldOverride[]
 
@@ -118,6 +119,20 @@ model FilmWork {
   entries FilmEntry[]
 
   @@map("film_works")
+}
+
+// L'œuvre livre (Open Library work id) — l'édition est personnelle et vit dans
+// BookEntry.pagesTotal (décision docs/cadrage/17).
+model BookWork {
+  id          String   @id @default(uuid())
+  olWorkId    String   @unique @map("ol_work_id")
+  title       String
+  payload     Json
+  refreshedAt DateTime @map("refreshed_at")
+
+  entries BookEntry[]
+
+  @@map("book_works")
 }
 
 // Épisodes d'une série, alimentés à la demande depuis /tv/{id}/season/{n}
@@ -291,6 +306,64 @@ model FilmEntry {
   @@unique([userId, filmWorkId])
   @@index([userId])
   @@map("film_entries")
+}
+
+// ── Lot livres (docs/cadrage/17) : suivi personnel — livres ─────────────────
+
+enum BookStatus {
+  TO_READ
+  READING
+  PAUSED
+  FINISHED
+  DROPPED
+}
+
+// pagesTotal = pages de MON édition : prérempli avec la médiane Open Library
+// (pagesSource=auto), librement modifiable (pagesSource=manual). Le chapitre
+// n'est pas une unité de calcul : resumeNote sert d'étiquette de reprise.
+model BookEntry {
+  id              String     @id @default(uuid())
+  userId          String     @map("user_id")
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookWorkId      String     @map("book_work_id")
+  bookWork        BookWork   @relation(fields: [bookWorkId], references: [id])
+  status          BookStatus @default(TO_READ)
+  pagesTotal      Int?       @map("pages_total")
+  pagesSource     String     @default("auto") @map("pages_source")
+  editionIsbn     String?    @map("edition_isbn")
+  currentPage     Int        @default(0) @map("current_page")
+  progressPercent Int?       @map("progress_percent")
+  resumeNote      String?    @map("resume_note")
+  startedAt       DateTime?  @map("started_at") @db.Date
+  finishedAt      DateTime?  @map("finished_at") @db.Date
+  rating          Int?
+  review          String?
+  notes           String?
+  favorite        Boolean    @default(false)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  progressUpdates BookProgressUpdate[]
+
+  @@unique([userId, bookWorkId])
+  @@index([userId])
+  @@map("book_entries")
+}
+
+// Journal de lecture : minutesRead alimente la calibration de la vitesse
+// personnelle (Σ Δpages ÷ Σ minutes) — jamais l'horloge murale.
+model BookProgressUpdate {
+  id              String    @id @default(uuid())
+  entryId         String    @map("entry_id")
+  entry           BookEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  currentPage     Int?      @map("current_page")
+  progressPercent Int?      @map("progress_percent")
+  minutesRead     Int?      @map("minutes_read")
+  note            String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@index([entryId])
+  @@map("book_progress_updates")
 }
 
 // ── Lot 3 : provenance des données (exigence forte du cahier des charges) ───

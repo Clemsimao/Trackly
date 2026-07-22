@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { mediaTypeSchema } from './media';
-import type { CompletionTarget, DurationWithProvenance, OwnershipStatus } from './library';
+import type {
+  BookStatus,
+  CompletionTarget,
+  DurationWithProvenance,
+  OwnershipStatus,
+} from './library';
 
 /**
  * Lot 4 — budget temps : le cœur différenciateur de Trackly.
@@ -136,6 +141,70 @@ export function filmRemainingSeconds(runtimeMinutes: number | null): number | nu
   return runtimeMinutes != null ? runtimeMinutes * 60 : null;
 }
 
+// ── Livres ──────────────────────────────────────────────────────────────────
+
+/** Vitesse de repli (ordre de grandeur adulte, fiction) tant que rien n'est calibré. */
+export const DEFAULT_PAGES_PER_HOUR = 30;
+
+/** Garde-fou de calibration : hors de [5, 200] p/h, la mesure est une faute de frappe. */
+export const MIN_PAGES_PER_HOUR = 5;
+export const MAX_PAGES_PER_HOUR = 200;
+
+export interface ReadingSession {
+  deltaPages: number;
+  minutesRead: number;
+}
+
+/**
+ * Vitesse de lecture personnelle (pages/heure) depuis le journal : Σ Δpages ÷ Σ minutes
+ * sur les sessions horodatées, bornée au garde-fou. null si aucune mesure exploitable —
+ * jamais déduite de l'horloge murale entre deux mises à jour (décision docs/cadrage/17).
+ */
+export function readingSpeed(sessions: ReadingSession[]): number | null {
+  let pages = 0;
+  let minutes = 0;
+  for (const session of sessions) {
+    if (session.minutesRead > 0 && session.deltaPages > 0) {
+      pages += session.deltaPages;
+      minutes += session.minutesRead;
+    }
+  }
+  if (minutes === 0) return null;
+  const speed = (pages / minutes) * 60;
+  return Math.min(MAX_PAGES_PER_HOUR, Math.max(MIN_PAGES_PER_HOUR, speed));
+}
+
+export interface BookProgressInput {
+  status: BookStatus;
+  /** Pages de MON édition (saisie perso, défaut = médiane OL) — null : livre « à estimer ». */
+  pagesTotal: number | null;
+  currentPage: number;
+  /** S'il est renseigné, le % prime sur la page courante (liseuses). */
+  progressPercent: number | null;
+}
+
+/**
+ * Temps de lecture restant. Mêmes règles que les jeux :
+ * - terminé → 0 ;
+ * - % renseigné → il prime ;
+ * - sinon (pages totales − page courante) ÷ vitesse, plancher à 0 ;
+ * - pages totales inconnues → null (« à estimer »).
+ */
+export function bookRemainingSeconds(
+  progress: BookProgressInput,
+  pagesPerHour: number | null,
+): number | null {
+  if (progress.status === 'FINISHED') return 0;
+  if (progress.pagesTotal == null) return null;
+  const speed = pagesPerHour ?? DEFAULT_PAGES_PER_HOUR;
+  const totalSeconds = (progress.pagesTotal / speed) * 3600;
+  if (progress.progressPercent != null) {
+    return Math.round(totalSeconds * (1 - progress.progressPercent / 100));
+  }
+  const remainingPages = Math.max(0, progress.pagesTotal - progress.currentPage);
+  return Math.round((remainingPages / speed) * 3600);
+}
+
 // ── Tableau de bord (contrat HTTP) ──────────────────────────────────────────
 
 export const budgetBucketSchema = z.object({
@@ -173,6 +242,10 @@ export const dashboardResponseSchema = z.object({
   }),
   films: z.object({
     toWatch: budgetBucketSchema,
+  }),
+  books: z.object({
+    inProgress: budgetBucketSchema,
+    toRead: budgetBucketSchema,
   }),
   /** En cours, triés par temps restant croissant — les victoires rapides d'abord. */
   inProgress: z.array(dashboardItemSchema),

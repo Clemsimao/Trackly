@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { SearchResultItem } from '@trackly/contracts';
 import type { CatalogCacheService } from './catalog-cache.service';
 import type { IgdbClient } from './providers/igdb.client';
+import type { OpenLibraryClient } from './providers/openlibrary.client';
 import type { TmdbClient } from './providers/tmdb.client';
 import { CatalogService, interleaveByType } from './catalog.service';
 
@@ -21,14 +22,16 @@ describe('CatalogService.search', () => {
       searchFilms: vi.fn().mockResolvedValue([item('film', 'Matrix')]),
       searchSeries: vi.fn().mockResolvedValue([item('series', 'Dark')]),
     };
+    const openLibrary = { searchBooks: vi.fn().mockResolvedValue([item('book', 'Dune')]) };
     const service = new CatalogService(
       passthroughCache,
       tmdb as unknown as TmdbClient,
       igdb as unknown as IgdbClient,
+      openLibrary as unknown as OpenLibraryClient,
     );
 
     const response = await service.search('zelda');
-    expect(response.results).toHaveLength(3);
+    expect(response.results).toHaveLength(4);
     expect(response.degraded).toEqual([]);
   });
 
@@ -38,10 +41,12 @@ describe('CatalogService.search', () => {
       searchFilms: vi.fn().mockResolvedValue([item('film', 'Matrix')]),
       searchSeries: vi.fn().mockResolvedValue([]),
     };
+    const openLibrary = { searchBooks: vi.fn().mockResolvedValue([]) };
     const service = new CatalogService(
       passthroughCache,
       tmdb as unknown as TmdbClient,
       igdb as unknown as IgdbClient,
+      openLibrary as unknown as OpenLibraryClient,
     );
 
     const response = await service.search('matrix');
@@ -52,16 +57,19 @@ describe('CatalogService.search', () => {
   it('filtre par type : seul le fournisseur concerné est interrogé', async () => {
     const igdb = { searchGames: vi.fn().mockResolvedValue([item('game', 'Zelda')]) };
     const tmdb = { searchFilms: vi.fn(), searchSeries: vi.fn() };
+    const openLibrary = { searchBooks: vi.fn() };
     const service = new CatalogService(
       passthroughCache,
       tmdb as unknown as TmdbClient,
       igdb as unknown as IgdbClient,
+      openLibrary as unknown as OpenLibraryClient,
     );
 
     await service.search('zelda', 'game');
     expect(igdb.searchGames).toHaveBeenCalled();
     expect(tmdb.searchFilms).not.toHaveBeenCalled();
     expect(tmdb.searchSeries).not.toHaveBeenCalled();
+    expect(openLibrary.searchBooks).not.toHaveBeenCalled();
   });
 });
 

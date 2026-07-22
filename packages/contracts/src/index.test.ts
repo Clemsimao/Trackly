@@ -24,13 +24,13 @@ describe('healthResponseSchema', () => {
 });
 
 describe('mediaTypeSchema', () => {
-  it('accepte les trois types de médias', () => {
-    for (const type of ['game', 'series', 'film']) {
+  it('accepte les quatre types de médias', () => {
+    for (const type of ['game', 'series', 'film', 'book']) {
       expect(mediaTypeSchema.safeParse(type).success).toBe(true);
     }
   });
 
   it('rejette un type inconnu', () => {
-    expect(mediaTypeSchema.safeParse('book').success).toBe(false);
+    expect(mediaTypeSchema.safeParse('podcast').success).toBe(false);
   });
 });

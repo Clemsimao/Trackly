@@ -65,6 +65,24 @@ export const filmDetailSchema = z.object({
 });
 export type FilmDetail = z.infer<typeof filmDetailSchema>;
 
+export const bookDetailSchema = z.object({
+  mediaType: z.literal('book'),
+  /** Open Library work id (ex. OL45804W) — l'œuvre, pas une édition. */
+  externalId: z.string(),
+  title: z.string(),
+  authors: z.array(z.string()),
+  /** OL : first_sentence ou description d'œuvre — couverture partielle (~40-57 %, docs/cadrage/17). */
+  description: z.string().nullable(),
+  coverUrl: z.string().url().nullable(),
+  firstPublishYear: z.number().int().nullable(),
+  /** Médiane toutes éditions (number_of_pages_median) — défaut du pagesTotal personnel. */
+  medianPages: z.number().int().nullable(),
+  /** Une édition de référence pour préremplir l'ISBN (facultatif). */
+  isbn13: z.string().nullable(),
+  subjects: z.array(z.string()),
+});
+export type BookDetail = z.infer<typeof bookDetailSchema>;
+
 export const seasonSummarySchema = z.object({
   seasonNumber: z.number().int(),
   name: z.string(),

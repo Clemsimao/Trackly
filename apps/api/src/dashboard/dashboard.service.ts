@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  BookDetail,
   BudgetBucket,
   CompletionTarget,
   DashboardItem,
@@ -10,12 +11,14 @@ import type {
   TimeToBeat,
 } from '@trackly/contracts';
 import {
+  bookRemainingSeconds,
   filmRemainingSeconds,
   gameRemainingSeconds,
   seriesRemaining,
   type GameDurationsInput,
   type OwnershipStatus,
 } from '@trackly/contracts';
+import { LibraryBooksService } from '../library/library-books.service';
 import { todayDateOnly } from '../library/serialize';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -53,21 +56,27 @@ function addToBucket(
  */
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly libraryBooks: LibraryBooksService,
+  ) {}
 
   async getDashboard(userId: string): Promise<DashboardResponse> {
-    const [gameEntries, seriesEntries, filmEntries] = await Promise.all([
+    const [gameEntries, seriesEntries, filmEntries, bookEntries, pagesPerHour] = await Promise.all([
       this.prisma.gameEntry.findMany({
         where: { userId },
         include: { gameWork: true, ownerships: true },
       }),
       this.prisma.seriesEntry.findMany({ where: { userId }, include: { seriesWork: true } }),
       this.prisma.filmEntry.findMany({ where: { userId }, include: { filmWork: true } }),
+      this.prisma.bookEntry.findMany({ where: { userId }, include: { bookWork: true } }),
+      this.libraryBooks.userPagesPerHour(userId),
     ]);
 
     const games = { inProgress: emptyBucket(), backlog: emptyBucket(), wishlist: emptyBucket() };
     const series = { inProgress: emptyBucket(), toWatch: emptyBucket() };
     const films = { toWatch: emptyBucket() };
+    const books = { inProgress: emptyBucket(), toRead: emptyBucket() };
     const inProgress: DashboardItem[] = [];
 
     // ── Jeux : durées effectives (overrides personnels par-dessus IGDB) ──────
@@ -200,6 +209,37 @@ export class DashboardService {
       addToBucket(films.toWatch, filmRemainingSeconds(detail.runtimeMinutes));
     }
 
+    // ── Livres : pages restantes ÷ vitesse calibrée (sinon 30 p/h) ──────────
+    const speedEstimated = pagesPerHour == null;
+    for (const entry of bookEntries) {
+      if (entry.status === 'FINISHED' || entry.status === 'DROPPED') continue;
+      const detail = entry.bookWork.payload as unknown as BookDetail;
+      const remaining = bookRemainingSeconds(
+        {
+          status: entry.status,
+          pagesTotal: entry.pagesTotal,
+          currentPage: entry.currentPage,
+          progressPercent: entry.progressPercent,
+        },
+        pagesPerHour,
+      );
+
+      if (entry.status === 'READING' || entry.status === 'PAUSED') {
+        addToBucket(books.inProgress, remaining, speedEstimated);
+        inProgress.push({
+          mediaType: 'book',
+          entryId: entry.id,
+          title: detail.title,
+          posterUrl: detail.coverUrl,
+          subtitle: entry.pagesTotal != null ? `p. ${entry.currentPage}/${entry.pagesTotal}` : null,
+          remainingSeconds: remaining,
+          estimated: speedEstimated,
+        });
+      } else {
+        addToBucket(books.toRead, remaining, speedEstimated);
+      }
+    }
+
     // Victoires rapides d'abord ; temps inconnu en dernier
     inProgress.sort(
       (a, b) =>
@@ -213,6 +253,8 @@ export class DashboardService {
       series.inProgress,
       series.toWatch,
       films.toWatch,
+      books.inProgress,
+      books.toRead,
     ];
     return {
       totalSeconds: countedBuckets.reduce((sum, bucket) => sum + bucket.seconds, 0),
@@ -220,6 +262,7 @@ export class DashboardService {
       games,
       series,
       films,
+      books,
       inProgress: inProgress.slice(0, 10),
     };
   }

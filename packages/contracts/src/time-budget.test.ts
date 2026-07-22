@@ -2,8 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { GameDurationsInput } from './time-budget';
 import {
   DEFAULT_EPISODE_RUNTIME_MINUTES,
+  DEFAULT_PAGES_PER_HOUR,
+  MAX_PAGES_PER_HOUR,
+  MIN_PAGES_PER_HOUR,
+  bookRemainingSeconds,
   filmRemainingSeconds,
   gameRemainingSeconds,
+  readingSpeed,
   seriesRemaining,
   targetDurationSeconds,
 } from './time-budget';
@@ -184,5 +189,96 @@ describe('filmRemainingSeconds', () => {
   it('durée connue → secondes ; inconnue → null', () => {
     expect(filmRemainingSeconds(136)).toBe(136 * 60);
     expect(filmRemainingSeconds(null)).toBeNull();
+  });
+});
+
+describe('readingSpeed — calibration de la vitesse de lecture', () => {
+  it('aucune session mesurée → null (on retombera sur le défaut)', () => {
+    expect(readingSpeed([])).toBeNull();
+    expect(readingSpeed([{ deltaPages: 10, minutesRead: 0 }])).toBeNull();
+    expect(readingSpeed([{ deltaPages: 0, minutesRead: 30 }])).toBeNull();
+  });
+
+  it('Σ Δpages ÷ Σ minutes sur les sessions exploitables', () => {
+    // 40 p en 60 min + 20 p en 60 min = 60 p en 2 h → 30 p/h
+    expect(
+      readingSpeed([
+        { deltaPages: 40, minutesRead: 60 },
+        { deltaPages: 20, minutesRead: 60 },
+      ]),
+    ).toBe(30);
+  });
+
+  it('les sessions inexploitables sont ignorées, pas la calibration entière', () => {
+    expect(
+      readingSpeed([
+        { deltaPages: 40, minutesRead: 60 },
+        { deltaPages: 0, minutesRead: 15 }, // relecture sur place : ignorée
+      ]),
+    ).toBe(40);
+  });
+
+  it('vitesses aberrantes bornées au garde-fou [5, 200] p/h', () => {
+    // 500 p en 10 min (faute de frappe) → plafonné
+    expect(readingSpeed([{ deltaPages: 500, minutesRead: 10 }])).toBe(MAX_PAGES_PER_HOUR);
+    // 1 p en 120 min → plancher
+    expect(readingSpeed([{ deltaPages: 1, minutesRead: 120 }])).toBe(MIN_PAGES_PER_HOUR);
+  });
+});
+
+describe('bookRemainingSeconds', () => {
+  const reading = {
+    status: 'READING',
+    pagesTotal: 300,
+    currentPage: 100,
+    progressPercent: null,
+  } as const;
+
+  it('pages restantes ÷ vitesse calibrée', () => {
+    // 200 pages restantes à 40 p/h → 5 h
+    expect(bookRemainingSeconds({ ...reading }, 40)).toBe(5 * 3600);
+  });
+
+  it('sans calibration → vitesse de repli 30 p/h', () => {
+    // 200 pages à 30 p/h → 24000 s
+    expect(bookRemainingSeconds({ ...reading }, null)).toBe(
+      Math.round((200 / DEFAULT_PAGES_PER_HOUR) * 3600),
+    );
+  });
+
+  it('le % de progression prime sur la page courante (liseuses)', () => {
+    const remaining = bookRemainingSeconds(
+      { status: 'READING', pagesTotal: 300, currentPage: 100, progressPercent: 90 },
+      30,
+    );
+    // 10 % de 10 h → 1 h, malgré une page courante incohérente
+    expect(remaining).toBe(3600);
+  });
+
+  it('terminé → 0, même avec une page courante en retard', () => {
+    expect(
+      bookRemainingSeconds(
+        { status: 'FINISHED', pagesTotal: 300, currentPage: 10, progressPercent: null },
+        30,
+      ),
+    ).toBe(0);
+  });
+
+  it('page courante au-delà du total → plancher 0', () => {
+    expect(
+      bookRemainingSeconds(
+        { status: 'READING', pagesTotal: 300, currentPage: 350, progressPercent: null },
+        30,
+      ),
+    ).toBe(0);
+  });
+
+  it('pages totales inconnues → null (livre « à estimer »)', () => {
+    expect(
+      bookRemainingSeconds(
+        { status: 'READING', pagesTotal: null, currentPage: 50, progressPercent: null },
+        30,
+      ),
+    ).toBeNull();
   });
 });

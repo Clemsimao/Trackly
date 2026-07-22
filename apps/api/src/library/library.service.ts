@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import type {
+  BookDetail,
   FilmDetail,
   GameDetail,
+  LibraryBookItem,
   LibraryFilmItem,
   LibraryGameItem,
   LibraryResponse,
@@ -22,7 +24,7 @@ export class LibraryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getLibrary(userId: string): Promise<LibraryResponse> {
-    const [gameEntries, seriesEntries, filmEntries] = await Promise.all([
+    const [gameEntries, seriesEntries, filmEntries, bookEntries] = await Promise.all([
       this.prisma.gameEntry.findMany({
         where: { userId },
         include: { gameWork: true, ownerships: { orderBy: { createdAt: 'asc' } } },
@@ -36,6 +38,11 @@ export class LibraryService {
       this.prisma.filmEntry.findMany({
         where: { userId },
         include: { filmWork: true },
+        orderBy: { updatedAt: 'desc' },
+      }),
+      this.prisma.bookEntry.findMany({
+        where: { userId },
+        include: { bookWork: true },
         orderBy: { updatedAt: 'desc' },
       }),
     ]);
@@ -103,6 +110,26 @@ export class LibraryService {
           favorite: entry.favorite,
           rating: entry.rating,
           watchedAt: toDateOnly(entry.watchedAt),
+          updatedAt: entry.updatedAt.toISOString(),
+        };
+      }),
+      books: bookEntries.map((entry): LibraryBookItem => {
+        const detail = entry.bookWork.payload as unknown as BookDetail;
+        return {
+          entryId: entry.id,
+          olWorkId: entry.bookWork.olWorkId,
+          work: {
+            title: detail.title,
+            posterUrl: detail.coverUrl,
+            year: detail.firstPublishYear,
+            genres: detail.subjects,
+          },
+          status: entry.status,
+          favorite: entry.favorite,
+          rating: entry.rating,
+          currentPage: entry.currentPage,
+          pagesTotal: entry.pagesTotal,
+          progressPercent: entry.progressPercent,
           updatedAt: entry.updatedAt.toISOString(),
         };
       }),

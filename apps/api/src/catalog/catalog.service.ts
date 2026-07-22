@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type {
+  BookDetail,
   FilmDetail,
   GameDetail,
   MediaType,
@@ -9,6 +10,7 @@ import type {
 } from '@trackly/contracts';
 import { CatalogCacheService } from './catalog-cache.service';
 import { IgdbClient } from './providers/igdb.client';
+import { OpenLibraryClient } from './providers/openlibrary.client';
 import { TmdbClient } from './providers/tmdb.client';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -24,6 +26,7 @@ export class CatalogService {
     private readonly cache: CatalogCacheService,
     private readonly tmdb: TmdbClient,
     private readonly igdb: IgdbClient,
+    private readonly openLibrary: OpenLibraryClient,
   ) {}
 
   /** Recherche fusionnée multi-fournisseurs, tolérante aux pannes partielles. */
@@ -60,6 +63,14 @@ export class CatalogService {
       );
       taskTypes.push('series');
     }
+    if (wanted('book')) {
+      tasks.push(
+        this.cache.getOrFetch(`search:book:${normalized}`, SEARCH_TTL_MS, () =>
+          this.openLibrary.searchBooks(query),
+        ),
+      );
+      taskTypes.push('book');
+    }
 
     const settled = await Promise.allSettled(tasks);
     const results: SearchResultItem[] = [];
@@ -92,6 +103,12 @@ export class CatalogService {
   getSeries(externalId: string): Promise<SeriesDetail> {
     return this.cache.getOrFetch(`series:${externalId}`, DETAIL_TTL_MS, () =>
       this.tmdb.getSeries(externalId),
+    );
+  }
+
+  getBook(externalId: string): Promise<BookDetail> {
+    return this.cache.getOrFetch(`book:${externalId}`, DETAIL_TTL_MS, () =>
+      this.openLibrary.getBook(externalId),
     );
   }
 

@@ -16,10 +16,12 @@ import {
 import type { User } from '@prisma/client';
 import { z } from 'zod';
 import {
+  addBookBodySchema,
   addFilmBodySchema,
   addGameBodySchema,
   addOwnershipBodySchema,
   addSeriesBodySchema,
+  updateBookEntryBodySchema,
   updateDurationsBodySchema,
   updateFilmEntryBodySchema,
   updateGameEntryBodySchema,
@@ -28,6 +30,7 @@ import {
 } from '@trackly/contracts';
 import type {
   AddedResponse,
+  BookEntryDetail,
   FilmEntryDetail,
   GameEntryDetail,
   LibraryResponse,
@@ -41,6 +44,7 @@ import {
   ProviderRequestError,
 } from '../catalog/provider.errors';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
+import { LibraryBooksService } from './library-books.service';
 import { LibraryFilmsService } from './library-films.service';
 import { LibraryGamesService } from './library-games.service';
 import { LibrarySeriesService } from './library-series.service';
@@ -54,6 +58,7 @@ export class LibraryController {
     private readonly games: LibraryGamesService,
     private readonly series: LibrarySeriesService,
     private readonly films: LibraryFilmsService,
+    private readonly books: LibraryBooksService,
   ) {}
 
   @Get()
@@ -249,6 +254,38 @@ export class LibraryController {
   @HttpCode(204)
   async deleteFilm(@CurrentUser() user: User, @Param('entryId') entryId: string): Promise<void> {
     await this.films.deleteEntry(user.id, entryId);
+  }
+
+  // ── Livres ────────────────────────────────────────────────────────────────
+
+  @Post('books')
+  addBook(
+    @CurrentUser() user: User,
+    @Body(new ZodValidationPipe(addBookBodySchema)) body: z.output<typeof addBookBodySchema>,
+  ): Promise<AddedResponse> {
+    return this.wrapProvider(() => this.books.add(user.id, body));
+  }
+
+  @Get('books/:entryId')
+  getBook(@CurrentUser() user: User, @Param('entryId') entryId: string): Promise<BookEntryDetail> {
+    return this.books.getDetail(user.id, entryId);
+  }
+
+  @Patch('books/:entryId')
+  @HttpCode(204)
+  async updateBook(
+    @CurrentUser() user: User,
+    @Param('entryId') entryId: string,
+    @Body(new ZodValidationPipe(updateBookEntryBodySchema))
+    body: z.output<typeof updateBookEntryBodySchema>,
+  ): Promise<void> {
+    await this.books.updateEntry(user.id, entryId, body);
+  }
+
+  @Delete('books/:entryId')
+  @HttpCode(204)
+  async deleteBook(@CurrentUser() user: User, @Param('entryId') entryId: string): Promise<void> {
+    await this.books.deleteEntry(user.id, entryId);
   }
 
   /** Les ajouts passent par les fournisseurs : mêmes traductions HTTP qu'au catalogue. */

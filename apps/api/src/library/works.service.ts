@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma, SeriesWork } from '@prisma/client';
-import type { FilmDetail, GameDetail, SeriesDetail } from '@trackly/contracts';
+import type { BookDetail, FilmDetail, GameDetail, SeriesDetail } from '@trackly/contracts';
 import { CatalogService } from '../catalog/catalog.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -78,6 +78,25 @@ export class WorksService {
     }
   }
 
+  async ensureBookWork(olWorkId: string) {
+    const existing = await this.prisma.bookWork.findUnique({ where: { olWorkId } });
+    if (existing && !this.isStale(existing.refreshedAt)) return existing;
+    try {
+      const detail = await this.catalog.getBook(olWorkId);
+      return await this.prisma.bookWork.upsert({
+        where: { olWorkId },
+        create: this.bookData(olWorkId, detail),
+        update: this.bookData(olWorkId, detail),
+      });
+    } catch (error) {
+      if (existing) {
+        this.logger.warn(`Rafraîchissement du livre ${olWorkId} en échec, snapshot conservé`);
+        return existing;
+      }
+      throw error;
+    }
+  }
+
   /**
    * Alimente les EpisodeRecord d'une saison depuis /tv/{id}/season/{n} —
    * seule source fiable des durées par épisode (episode_run_time : 10 % de couverture).
@@ -134,6 +153,15 @@ export class WorksService {
   private tmdbData(tmdbId: string, detail: SeriesDetail | FilmDetail) {
     return {
       tmdbId,
+      title: detail.title,
+      payload: detail as unknown as Prisma.InputJsonValue,
+      refreshedAt: new Date(),
+    };
+  }
+
+  private bookData(olWorkId: string, detail: BookDetail) {
+    return {
+      olWorkId,
       title: detail.title,
       payload: detail as unknown as Prisma.InputJsonValue,
       refreshedAt: new Date(),
