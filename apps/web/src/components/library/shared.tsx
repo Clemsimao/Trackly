@@ -42,7 +42,7 @@ export function LibraryShell({
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mt-6 rounded-2xl border border-(--border) bg-(--surface) p-4">
-      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      <h2 className="mb-3 font-display text-lg font-semibold">{title}</h2>
       {children}
     </section>
   );
@@ -72,7 +72,7 @@ export function EntryHeader({
         <span className="inline-block rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary">
           {badge}
         </span>
-        <h1 className="mt-1 text-2xl font-bold">{title}</h1>
+        <h1 className="mt-1 font-display text-2xl font-semibold">{title}</h1>
         {subtitle ? <p className="mt-1 text-sm text-(--text-muted)">{subtitle}</p> : null}
       </div>
     </div>

@@ -146,7 +146,7 @@ function DurationsSection({ entry }: { entry: GameEntryDetail }) {
                   className={`mt-1 w-full text-center ${inputClass}`}
                 />
               ) : (
-                <p className="mt-1 text-xl font-bold text-primary">
+                <p className="tabular mt-1 text-xl text-accent">
                   {duration.seconds ? `≈ ${formatHoursFromSeconds(duration.seconds)}` : '—'}
                 </p>
               )}

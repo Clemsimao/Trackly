@@ -3,40 +3,100 @@
 /* Mode sombre piloté par la classe .dark sur <html> (persisté, cf. index.html) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Design tokens Trackly (première itération, ajustables — docs/cadrage/11) ── */
+/* ══ Système de design Trackly — direction « Almanach » ═══════════════════════
+   Thèse : Trackly est le grand livre de ton temps. Là où Letterboxd est un
+   charbon froid et Backloggd son décalque, on va CHAUD — encre + ambre (le
+   sable du sablier). Les chiffres d'heures sont les héros : typo tabulaire,
+   comme un relevé de compte. Les affiches restent reines pour la bibliothèque.
+   ────────────────────────────────────────────────────────────────────────── */
 @theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Trois voix typographiques : titres serif, corps neutre, chiffres tabulaires */
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
 
-  /* Accent : violet électrique, univers gaming/streaming sans copier personne */
-  --color-primary: oklch(0.65 0.21 295);
-  --color-primary-strong: oklch(0.55 0.23 295);
+  /* Marque = ambre. Deux tons : brûlé (boutons/liens, lisible sur texte blanc)
+     et marigold vif (les moments « temps » — le solde, les accents héro). */
+  --color-primary: oklch(0.64 0.15 66);
+  --color-primary-strong: oklch(0.56 0.16 62);
+  --color-accent: oklch(0.83 0.13 82);
 
-  /* Statuts (repris par les 3 médias) */
-  --color-progress: oklch(0.7 0.15 250);
-  --color-done: oklch(0.72 0.17 150);
-  --color-paused: oklch(0.78 0.14 85);
-  --color-dropped: oklch(0.62 0.19 25);
+  /* Statuts — réservés aux DONNÉES (jamais décoratifs) : distincts de l'ambre marque */
+  --color-progress: oklch(0.7 0.14 245);
+  --color-done: oklch(0.72 0.16 152);
+  --color-paused: oklch(0.75 0.1 78);
+  --color-dropped: oklch(0.63 0.19 25);
 }
 
-/* Surfaces et textes : variables par thème, consommées via bg-(--surface) etc. */
+/* Surfaces et textes par thème, consommés via bg-(--surface), text-(--text-muted)… */
 :root {
-  --bg: oklch(0.98 0.005 295);
-  --surface: oklch(1 0 0);
-  --border: oklch(0.9 0.01 295);
-  --text: oklch(0.25 0.02 295);
-  --text-muted: oklch(0.5 0.02 295);
+  --bg: oklch(0.965 0.012 85);
+  --surface: oklch(0.995 0.006 85);
+  --surface-raised: oklch(0.98 0.012 82);
+  --border: oklch(0.88 0.016 80);
+  --text: oklch(0.24 0.03 60);
+  --text-muted: oklch(0.48 0.03 72);
 }
 
 .dark {
-  --bg: oklch(0.17 0.02 295);
-  --surface: oklch(0.22 0.02 295);
-  --border: oklch(0.32 0.02 295);
-  --text: oklch(0.95 0.01 295);
-  --text-muted: oklch(0.7 0.02 295);
+  --bg: oklch(0.16 0.012 70);
+  --surface: oklch(0.21 0.015 68);
+  --surface-raised: oklch(0.25 0.018 66);
+  --border: oklch(0.31 0.018 68);
+  --text: oklch(0.93 0.02 84);
+  --text-muted: oklch(0.69 0.025 78);
 }
 
 body {
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Utilitaires de la direction ──────────────────────────────────────────── */
+
+/* Titres serif : Fraunces poussée en taille optique + un soupçon de « wonk » */
+.font-display {
+  font-family: var(--font-display);
+  font-variation-settings:
+    'opsz' 60,
+    'SOFT' 30,
+    'WONK' 0;
+  letter-spacing: -0.01em;
+}
+
+/* Le chiffre-héros : grande taille optique, plus de caractère */
+.display-figure {
+  font-family: var(--font-display);
+  font-variation-settings:
+    'opsz' 144,
+    'SOFT' 40,
+    'WONK' 1;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.02em;
+}
+
+/* Chiffres alignés comme un relevé (heures, compteurs) */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Étiquette d'en-tête à la « rubrique de carnet » */
+.eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.7rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

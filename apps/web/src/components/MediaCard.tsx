@@ -43,7 +43,7 @@ export function MediaCard({ item }: { item: SearchResultItem }) {
         >
           {fr.media.typeLabel[item.mediaType]}
         </span>
-        <p className="line-clamp-2 text-sm font-semibold leading-snug">{item.title}</p>
+        <p className="line-clamp-2 font-display text-sm font-medium leading-snug">{item.title}</p>
         {item.year ? <p className="text-xs text-(--text-muted)">{item.year}</p> : null}
       </div>
     </Link>

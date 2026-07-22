@@ -152,7 +152,7 @@ export function LibraryPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-6">
-      <h1 className="mb-4 text-2xl font-bold">{fr.library.title}</h1>
+      <h1 className="mb-4 font-display text-2xl font-semibold">{fr.library.title}</h1>
 
       <div role="group" aria-label="Filtrer par type" className="flex flex-wrap gap-2">
         {TYPE_FILTERS.map((filter) => (

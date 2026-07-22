@@ -80,7 +80,7 @@ function TimeToBeatCards({ ttb }: { ttb: TimeToBeat | null }) {
   ];
   return (
     <section aria-label={fr.media.ttbTitle} className="mt-6">
-      <h2 className="mb-2 text-lg font-semibold">{fr.media.ttbTitle}</h2>
+      <h2 className="mb-2 font-display text-lg font-semibold">{fr.media.ttbTitle}</h2>
       <div className="grid grid-cols-3 gap-3">
         {entries.map((entry) => (
           <div
@@ -88,7 +88,7 @@ function TimeToBeatCards({ ttb }: { ttb: TimeToBeat | null }) {
             className="rounded-xl border border-(--border) bg-(--surface) p-3 text-center"
           >
             <p className="text-xs text-(--text-muted)">{entry.label}</p>
-            <p className="mt-1 text-xl font-bold text-primary">
+            <p className="tabular mt-1 text-xl text-accent">
               {entry.seconds ? `≈ ${formatHoursFromSeconds(entry.seconds)}` : '—'}
             </p>
           </div>
@@ -127,7 +127,7 @@ function Hero({
             className="-mt-16 w-24 shrink-0 rounded-lg border border-(--border) shadow-md sm:mt-0 sm:w-28"
           />
         ) : null}
-        <h1 className="pb-1 text-2xl font-bold drop-shadow-sm">{title}</h1>
+        <h1 className="pb-1 font-display text-3xl font-semibold drop-shadow-sm">{title}</h1>
       </div>
     </div>
   );

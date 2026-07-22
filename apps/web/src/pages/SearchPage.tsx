@@ -29,7 +29,7 @@ export function SearchPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-6">
-      <h1 className="mb-4 text-2xl font-bold">{fr.search.title}</h1>
+      <h1 className="mb-4 font-display text-2xl font-semibold">{fr.search.title}</h1>
 
       <input
         type="search"

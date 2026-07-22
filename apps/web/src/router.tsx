@@ -33,8 +33,9 @@ function RootLayout() {
     <div className="flex min-h-dvh flex-col">
       <header className="mx-auto flex w-full max-w-4xl items-center justify-between px-6 py-5">
         <div className="flex items-center gap-5">
-          <Link to="/" className="text-xl font-bold tracking-tight text-primary">
+          <Link to="/" className="font-display text-2xl font-semibold tracking-tight text-(--text)">
             {fr.app.name}
+            <span className="text-accent">.</span>
           </Link>
           {user ? (
             <nav className="flex items-center gap-4 text-sm" aria-label="Navigation principale">

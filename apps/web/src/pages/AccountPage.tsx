@@ -11,7 +11,7 @@ export function AccountPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-8">
-      <h1 className="text-2xl font-bold">{fr.account.title}</h1>
+      <h1 className="font-display text-2xl font-semibold">{fr.account.title}</h1>
       {user ? (
         <div className="mt-4 rounded-2xl border border-(--border) bg-(--surface) p-5">
           <p className="text-lg font-semibold">{user.displayName}</p>
@@ -31,7 +31,7 @@ function ExportSection() {
 
   return (
     <section className="mt-6 rounded-2xl border border-(--border) bg-(--surface) p-5">
-      <h2 className="text-lg font-semibold">{fr.account.exportTitle}</h2>
+      <h2 className="font-display text-lg font-semibold">{fr.account.exportTitle}</h2>
       <p className="mt-1 text-sm text-(--text-muted)">{fr.account.exportHint}</p>
       <button
         type="button"
@@ -66,7 +66,7 @@ function DangerSection() {
 
   return (
     <section className="mt-6 rounded-2xl border border-dropped/40 bg-(--surface) p-5">
-      <h2 className="text-lg font-semibold text-dropped">{fr.account.dangerTitle}</h2>
+      <h2 className="font-display text-lg font-semibold text-dropped">{fr.account.dangerTitle}</h2>
       <p className="mt-1 text-sm text-(--text-muted)">{fr.account.dangerHint}</p>
       <form
         className="mt-3 space-y-3"

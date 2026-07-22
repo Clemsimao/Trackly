@@ -53,6 +53,7 @@ export const fr = {
     levels: ['Trop court', 'Faible', 'Correct', 'Bon', 'Excellent'],
   },
   home: {
+    eyebrow: 'Ton carnet de temps',
     welcome: 'Bonjour',
     lotDone: 'Ta bibliothèque est ouverte : ajoute, suis, reprends.',
     nextUp: 'Prochaine étape : le budget temps et le tableau de bord (Lot 4).',
