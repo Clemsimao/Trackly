@@ -95,45 +95,34 @@ function BudgetLedger() {
     <section className="mt-8" aria-label={fr.library.budget.title}>
       <LedgerHeading />
 
-      {/* Le solde — golden hour : lueur ambre discrète en haut du panneau */}
-      <div className="relative mt-3 overflow-hidden rounded-2xl border border-(--border) bg-(--surface-raised)">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-32 opacity-70"
-          style={{
-            background:
-              'radial-gradient(120% 80% at 50% 0%, color-mix(in oklch, var(--color-accent) 22%, transparent), transparent 70%)',
-          }}
-        />
-        <div className="relative p-5 sm:p-6">
-          <p className="eyebrow text-(--text-muted)">{fr.library.budget.totalPrefix}</p>
-          <p className="display-figure mt-1 text-5xl leading-none text-accent sm:text-6xl">
-            {formatHoursFromSeconds(data.totalSeconds)}
-          </p>
-          {data.totalEstimated ? (
-            <p className="mt-2 text-xs text-(--text-muted)">{fr.library.budget.estimatedNote}</p>
-          ) : null}
+      <div className="mt-3 rounded-xl border border-(--border) bg-(--surface) p-5 sm:p-6">
+        <p className="eyebrow text-(--text-muted)">{fr.library.budget.totalPrefix}</p>
+        <p className="display-figure mt-1.5 text-5xl leading-none sm:text-6xl">
+          {formatHoursFromSeconds(data.totalSeconds)}
+        </p>
+        {data.totalEstimated ? (
+          <p className="mt-2 text-xs text-(--text-muted)">{fr.library.budget.estimatedNote}</p>
+        ) : null}
 
-          {/* Le relevé : une ligne par média, heures alignées à droite */}
-          <dl className="mt-5 divide-y divide-(--border) border-t border-(--border)">
-            {lines.map((line) => (
-              <div key={line.label} className="flex items-baseline justify-between gap-4 py-3">
-                <dt>
-                  <span className="font-display text-lg">
-                    <span aria-hidden className="mr-2">
-                      {line.icon}
-                    </span>
-                    {line.label}
+        {/* Le relevé : une ligne par média, heures alignées à droite */}
+        <dl className="mt-5 divide-y divide-(--border) border-t border-(--border)">
+          {lines.map((line) => (
+            <div key={line.label} className="flex items-baseline justify-between gap-4 py-3">
+              <dt>
+                <span className="font-display font-medium">
+                  <span aria-hidden className="mr-2">
+                    {line.icon}
                   </span>
-                  <span className="mt-0.5 block text-xs text-(--text-muted)">{line.caption}</span>
-                </dt>
-                <dd className="tabular shrink-0 text-lg text-(--text)">
-                  {line.seconds > 0 ? formatHoursFromSeconds(line.seconds) : '—'}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
+                  {line.label}
+                </span>
+                <span className="mt-0.5 block text-xs text-(--text-muted)">{line.caption}</span>
+              </dt>
+              <dd className="tabular shrink-0 text-lg font-semibold text-(--text)">
+                {line.seconds > 0 ? formatHoursFromSeconds(line.seconds) : '—'}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       {data.inProgress.length > 0 ? (

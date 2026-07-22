@@ -3,48 +3,43 @@
 /* Mode sombre piloté par la classe .dark sur <html> (persisté, cf. index.html) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ══ Système de design Trackly — direction « Almanach » ═══════════════════════
-   Thèse : Trackly est le grand livre de ton temps. Là où Letterboxd est un
-   charbon froid et Backloggd son décalque, on va CHAUD — encre + ambre (le
-   sable du sablier). Les chiffres d'heures sont les héros : typo tabulaire,
-   comme un relevé de compte. Les affiches restent reines pour la bibliothèque.
+/* ══ Système de design Trackly — direction « Minimal & net » ═══════════════════
+   Épuré chirurgical (esprit Apple / Vercel) : une seule famille sans-serif,
+   contraste franc, gris neutres, UN accent bleu utilisé avec parcimonie,
+   beaucoup d'espace. Les chiffres restent nets et tabulaires ; zéro fioriture.
    ────────────────────────────────────────────────────────────────────────── */
 @theme {
-  /* Trois voix typographiques : titres serif, corps neutre, chiffres tabulaires */
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
-  --font-mono: 'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* Marque = ambre. Deux tons : brûlé (boutons/liens, lisible sur texte blanc)
-     et marigold vif (les moments « temps » — le solde, les accents héro). */
-  --color-primary: oklch(0.64 0.15 66);
-  --color-primary-strong: oklch(0.56 0.16 62);
-  --color-accent: oklch(0.83 0.13 82);
+  /* Un seul accent : bleu net, réservé à l'interactif et aux repères clés */
+  --color-primary: oklch(0.58 0.19 262);
+  --color-primary-strong: oklch(0.52 0.2 262);
+  --color-accent: oklch(0.64 0.19 262);
 
-  /* Statuts — réservés aux DONNÉES (jamais décoratifs) : distincts de l'ambre marque */
-  --color-progress: oklch(0.7 0.14 245);
-  --color-done: oklch(0.72 0.16 152);
-  --color-paused: oklch(0.75 0.1 78);
+  /* Statuts — réservés aux DONNÉES, désaturés pour rester discrets */
+  --color-progress: oklch(0.62 0.15 250);
+  --color-done: oklch(0.7 0.15 158);
+  --color-paused: oklch(0.72 0.08 80);
   --color-dropped: oklch(0.63 0.19 25);
 }
 
-/* Surfaces et textes par thème, consommés via bg-(--surface), text-(--text-muted)… */
+/* Surfaces neutres (gris froid quasi sans teinte), consommées via bg-(--surface)… */
 :root {
-  --bg: oklch(0.965 0.012 85);
-  --surface: oklch(0.995 0.006 85);
-  --surface-raised: oklch(0.98 0.012 82);
-  --border: oklch(0.88 0.016 80);
-  --text: oklch(0.24 0.03 60);
-  --text-muted: oklch(0.48 0.03 72);
+  --bg: oklch(0.99 0 0);
+  --surface: oklch(1 0 0);
+  --surface-raised: oklch(0.985 0.002 250);
+  --border: oklch(0.92 0.003 250);
+  --text: oklch(0.2 0.005 250);
+  --text-muted: oklch(0.48 0.006 250);
 }
 
 .dark {
-  --bg: oklch(0.16 0.012 70);
-  --surface: oklch(0.21 0.015 68);
-  --surface-raised: oklch(0.25 0.018 66);
-  --border: oklch(0.31 0.018 68);
-  --text: oklch(0.93 0.02 84);
-  --text-muted: oklch(0.69 0.025 78);
+  --bg: oklch(0.15 0.004 250);
+  --surface: oklch(0.19 0.004 250);
+  --surface-raised: oklch(0.225 0.005 250);
+  --border: oklch(0.28 0.006 250);
+  --text: oklch(0.97 0.002 250);
+  --text-muted: oklch(0.66 0.006 250);
 }
 
 body {
@@ -55,41 +50,34 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* ── Utilitaires de la direction ──────────────────────────────────────────── */
+/* ── Utilitaires (une seule famille : le poids, la taille et le tracking font tout) ── */
 
-/* Titres serif : Fraunces poussée en taille optique + un soupçon de « wonk » */
+/* Titres : sans-serif serrée, nette */
 .font-display {
-  font-family: var(--font-display);
-  font-variation-settings:
-    'opsz' 60,
-    'SOFT' 30,
-    'WONK' 0;
+  font-family: var(--font-sans);
+  letter-spacing: -0.014em;
+}
+
+/* Le chiffre-héros : très serré, tabulaire, en gras — le repère net du dashboard */
+.display-figure {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+/* Chiffres alignés (heures, compteurs) */
+.tabular {
+  font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
 
-/* Le chiffre-héros : grande taille optique, plus de caractère */
-.display-figure {
-  font-family: var(--font-display);
-  font-variation-settings:
-    'opsz' 144,
-    'SOFT' 40,
-    'WONK' 1;
-  font-feature-settings: 'tnum' 1;
-  letter-spacing: -0.02em;
-}
-
-/* Chiffres alignés comme un relevé (heures, compteurs) */
-.tabular {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Étiquette d'en-tête à la « rubrique de carnet » */
+/* Étiquette d'en-tête sobre */
 .eyebrow {
-  font-family: var(--font-mono);
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 500;
 }
 
 @media (prefers-reduced-motion: reduce) {
