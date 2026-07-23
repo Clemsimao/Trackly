@@ -17,11 +17,17 @@ import { AccountPage } from './pages/AccountPage';
 import { CancelDeletionPage } from './pages/CancelDeletionPage';
 import { HomePage } from './pages/HomePage';
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from './pages/AuthPages';
+import { LibraryBookPage } from './pages/LibraryBookPage';
 import { LibraryFilmPage } from './pages/LibraryFilmPage';
 import { LibraryGamePage } from './pages/LibraryGamePage';
 import { LibraryPage } from './pages/LibraryPage';
 import { LibrarySeriesPage } from './pages/LibrarySeriesPage';
-import { FilmDetailPage, GameDetailPage, SeriesDetailPage } from './pages/MediaDetailPages';
+import {
+  BookDetailPage,
+  FilmDetailPage,
+  GameDetailPage,
+  SeriesDetailPage,
+} from './pages/MediaDetailPages';
 import { SearchPage } from './pages/SearchPage';
 import { isDark, toggleTheme } from './theme';
 
@@ -201,6 +207,13 @@ const libraryFilmRoute = createRoute({
   component: LibraryFilmPage,
 });
 
+const libraryBookRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/bibliotheque/livre/$entryId',
+  beforeLoad: requireAuth,
+  component: LibraryBookPage,
+});
+
 const gameDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/media/game/$id',
@@ -220,6 +233,13 @@ const seriesDetailRoute = createRoute({
   path: '/media/series/$id',
   beforeLoad: requireAuth,
   component: SeriesDetailPage,
+});
+
+const bookDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/media/book/$id',
+  beforeLoad: requireAuth,
+  component: BookDetailPage,
 });
 
 const indexRoute = createRoute({
@@ -286,10 +306,12 @@ const routeTree = rootRoute.addChildren([
   libraryGameRoute,
   librarySeriesRoute,
   libraryFilmRoute,
+  libraryBookRoute,
   rechercheRoute,
   gameDetailRoute,
   filmDetailRoute,
   seriesDetailRoute,
+  bookDetailRoute,
   connexionRoute,
   inscriptionRoute,
   motDePasseOublieRoute,

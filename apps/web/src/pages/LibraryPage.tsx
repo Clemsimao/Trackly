@@ -2,37 +2,38 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import type {
+  LibraryBookItem,
   LibraryFilmItem,
   LibraryGameItem,
   LibraryResponse,
   LibrarySeriesItem,
+  MediaType,
 } from '@trackly/contracts';
 import { getLibrary } from '../api/library';
 import { fr } from '../i18n/fr';
 import { formatMinutes } from '../utils/format';
-import type { ShelfMediaType } from '../utils/mediaTypes';
 
-// Les livres ne sont pas encore branchés côté front (cf. mediaTypes) : la
-// bibliothèque ne les liste pas et le filtre par type ne les propose pas.
-type TypeFilter = ShelfMediaType | 'all';
+type TypeFilter = MediaType | 'all';
 
 const TYPE_FILTERS: Array<{ value: TypeFilter; label: string }> = [
   { value: 'all', label: fr.library.filters.all },
   { value: 'game', label: fr.library.filters.games },
   { value: 'series', label: fr.library.filters.series },
   { value: 'film', label: fr.library.filters.films },
+  { value: 'book', label: fr.library.filters.books },
 ];
 
-const STATUS_OPTIONS: Record<ShelfMediaType, Record<string, string>> = {
+const STATUS_OPTIONS: Record<MediaType, Record<string, string>> = {
   game: fr.library.gameStatus,
   series: fr.library.seriesStatus,
   film: fr.library.filmStatus,
+  book: fr.library.bookStatus,
 };
 
 /** Ligne homogène pour l'affichage et le filtrage, quel que soit le type. */
 interface Row {
   key: string;
-  mediaType: ShelfMediaType;
+  mediaType: MediaType;
   entryId: string;
   title: string;
   posterUrl: string | null;
@@ -96,7 +97,28 @@ function toRows(library: LibraryResponse): Row[] {
     platforms: [],
     updatedAt: item.updatedAt,
   }));
-  return [...games, ...series, ...films].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const books = library.books.map((item: LibraryBookItem): Row => ({
+    key: `book-${item.entryId}`,
+    mediaType: 'book',
+    entryId: item.entryId,
+    title: item.work.title,
+    posterUrl: item.work.posterUrl,
+    year: item.work.year,
+    genres: item.work.genres,
+    status: item.status,
+    statusLabel: fr.library.bookStatus[item.status],
+    favorite: item.favorite,
+    rating: item.rating,
+    progress:
+      item.pagesTotal != null && item.currentPage > 0
+        ? `${fr.library.book.pagesShort} ${item.currentPage}/${item.pagesTotal}`
+        : null,
+    platforms: [],
+    updatedAt: item.updatedAt,
+  }));
+  return [...games, ...series, ...films, ...books].sort((a, b) =>
+    b.updatedAt.localeCompare(a.updatedAt),
+  );
 }
 
 function gameProgress(item: LibraryGameItem): string | null {
@@ -111,15 +133,17 @@ function gameProgress(item: LibraryGameItem): string | null {
   return parts.length > 0 ? parts.join(' · ') : null;
 }
 
-const DETAIL_PATH: Record<ShelfMediaType, string> = {
+const DETAIL_PATH: Record<MediaType, string> = {
   game: '/bibliotheque/jeu/$entryId',
   series: '/bibliotheque/serie/$entryId',
   film: '/bibliotheque/film/$entryId',
+  book: '/bibliotheque/livre/$entryId',
 };
 
 const STATUS_BADGE: Record<string, string> = {
   PLAYING: 'bg-progress/15 text-progress',
   WATCHING: 'bg-progress/15 text-progress',
+  READING: 'bg-progress/15 text-progress',
   FINISHED: 'bg-done/15 text-done',
   COMPLETED: 'bg-done/15 text-done',
   SEEN: 'bg-done/15 text-done',

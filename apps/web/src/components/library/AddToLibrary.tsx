@@ -2,29 +2,32 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
+  bookStatusSchema,
   filmStatusSchema,
   gameStatusSchema,
   seriesStatusSchema,
   type AddedResponse,
   type GameStatus,
+  type MediaType,
   type SearchResultItem,
 } from '@trackly/contracts';
-import { addFilm, addGame, addSeries } from '../../api/library';
+import { addBook, addFilm, addGame, addSeries } from '../../api/library';
 import { existingEntryId } from '../../api/client';
 import { fr } from '../../i18n/fr';
-import { isShelfType, type ShelfMediaType } from '../../utils/mediaTypes';
 
-/** Chemin de la fiche bibliothèque pour un type de média (hors livres, cf. mediaTypes). */
-export const LIBRARY_PATH: Record<ShelfMediaType, string> = {
+/** Chemin de la fiche bibliothèque pour un type de média. */
+export const LIBRARY_PATH: Record<MediaType, string> = {
   game: '/bibliotheque/jeu/$entryId',
   film: '/bibliotheque/film/$entryId',
   series: '/bibliotheque/serie/$entryId',
+  book: '/bibliotheque/livre/$entryId',
 };
 
 function addWithDefaults(item: SearchResultItem): Promise<AddedResponse> {
-  // Statuts par défaut du cahier des charges : jeu → envie, film/série → à voir
+  // Statuts par défaut du cahier des charges : jeu → envie, film/série → à voir, livre → à lire
   if (item.mediaType === 'game') return addGame({ igdbId: item.externalId });
   if (item.mediaType === 'film') return addFilm({ tmdbId: item.externalId });
+  if (item.mediaType === 'book') return addBook({ olWorkId: item.externalId });
   return addSeries({ tmdbId: item.externalId });
 }
 
@@ -47,9 +50,6 @@ export function QuickAddButton({ item }: { item: SearchResultItem }) {
       if (existing) setEntryId(existing);
     },
   });
-
-  // Les livres sont écartés en amont (SearchPage) ; ce filet garantit le typage.
-  if (!isShelfType(item.mediaType)) return null;
 
   if (entryId) {
     return (
@@ -84,14 +84,22 @@ export function QuickAddButton({ item }: { item: SearchResultItem }) {
   );
 }
 
-const GAME_STATUSES = gameStatusSchema.options;
-const SERIES_STATUSES = seriesStatusSchema.options;
-const FILM_STATUSES = filmStatusSchema.options;
+const STATUSES: Record<MediaType, readonly string[]> = {
+  game: gameStatusSchema.options,
+  series: seriesStatusSchema.options,
+  film: filmStatusSchema.options,
+  book: bookStatusSchema.options,
+};
+
+const DEFAULT_STATUS: Record<MediaType, string> = {
+  game: 'WISHLIST',
+  series: 'TO_WATCH',
+  film: 'TO_WATCH',
+  book: 'TO_READ',
+};
 
 interface PanelProps {
-  // Monté uniquement sur les fiches jeu/série/film ; les livres n'ont pas encore
-  // de fiche côté front (cf. mediaTypes), d'où ShelfMediaType et non MediaType.
-  mediaType: ShelfMediaType;
+  mediaType: MediaType;
   externalId: string;
   /** Plateformes connues du jeu (IGDB) — proposées au choix, avec saisie libre. */
   platforms?: string[];
@@ -101,19 +109,18 @@ interface PanelProps {
 export function AddToLibraryPanel({ mediaType, externalId, platforms = [] }: PanelProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<string>(mediaType === 'game' ? 'WISHLIST' : 'TO_WATCH');
+  const [status, setStatus] = useState<string>(DEFAULT_STATUS[mediaType]);
   const [platform, setPlatform] = useState<string>(platforms[0] ?? '__other__');
   const [customPlatform, setCustomPlatform] = useState('');
   const [existing, setExisting] = useState<string | null>(null);
 
-  const statuses: readonly string[] =
-    mediaType === 'game' ? GAME_STATUSES : mediaType === 'series' ? SERIES_STATUSES : FILM_STATUSES;
-  const statusLabels: Record<string, string> =
-    mediaType === 'game'
-      ? fr.library.gameStatus
-      : mediaType === 'series'
-        ? fr.library.seriesStatus
-        : fr.library.filmStatus;
+  const statuses = STATUSES[mediaType];
+  const statusLabels: Record<string, string> = {
+    game: fr.library.gameStatus,
+    series: fr.library.seriesStatus,
+    film: fr.library.filmStatus,
+    book: fr.library.bookStatus,
+  }[mediaType];
   const needsPlatform = mediaType === 'game' && status !== 'WISHLIST';
   const chosenPlatform = platform === '__other__' ? customPlatform.trim() : platform;
 
@@ -128,6 +135,9 @@ export function AddToLibraryPanel({ mediaType, externalId, platforms = [] }: Pan
       }
       if (mediaType === 'film') {
         return addFilm({ tmdbId: externalId, status: status as never });
+      }
+      if (mediaType === 'book') {
+        return addBook({ olWorkId: externalId, status: status as never });
       }
       return addSeries({ tmdbId: externalId, status: status as never });
     },

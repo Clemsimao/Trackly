@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import type { DashboardItem, DashboardResponse } from '@trackly/contracts';
+import type { DashboardItem, DashboardResponse, MediaType } from '@trackly/contracts';
 import { logout, meQueryOptions } from '../api/auth';
 import { purgerCacheLocal } from '../api/persist';
 import { getDashboard } from '../api/dashboard';
 import { ApiStatus } from '../components/ApiStatus';
 import { fr } from '../i18n/fr';
-import { isShelfType, type ShelfMediaType } from '../utils/mediaTypes';
 import { formatHoursFromSeconds } from '../utils/format';
 
 export function HomePage() {
@@ -81,7 +80,9 @@ function BudgetLedger() {
     data.games.wishlist.count +
     data.series.inProgress.count +
     data.series.toWatch.count +
-    data.films.toWatch.count;
+    data.films.toWatch.count +
+    data.books.inProgress.count +
+    data.books.toRead.count;
 
   if (totalCount === 0) {
     return (
@@ -168,7 +169,7 @@ interface MediaLine {
 }
 
 function mediaLines(data: DashboardResponse): MediaLine[] {
-  const { games, series, films } = data;
+  const { games, series, films, books } = data;
   return [
     {
       icon: '🎮',
@@ -188,25 +189,31 @@ function mediaLines(data: DashboardResponse): MediaLine[] {
       seconds: films.toWatch.seconds,
       caption: `${films.toWatch.count} ${fr.library.budget.toWatchLabel}`,
     },
+    {
+      icon: '📖',
+      label: fr.library.budget.books,
+      seconds: books.inProgress.seconds + books.toRead.seconds,
+      caption: `${books.inProgress.count} ${fr.library.budget.inProgressLabel} · ${books.toRead.count} ${fr.library.budget.toReadLabel}`,
+    },
   ];
 }
 
-const ITEM_PATH: Record<ShelfMediaType, string> = {
+const ITEM_PATH: Record<MediaType, string> = {
   game: '/bibliotheque/jeu/$entryId',
   series: '/bibliotheque/serie/$entryId',
   film: '/bibliotheque/film/$entryId',
+  book: '/bibliotheque/livre/$entryId',
 };
 
-const ITEM_ICON: Record<ShelfMediaType, string> = {
+const ITEM_ICON: Record<MediaType, string> = {
   game: '🎮',
   series: '📺',
   film: '🎬',
+  book: '📖',
 };
 
 function InProgressRow({ item }: { item: DashboardItem }) {
-  // Les livres ne sont pas encore rendus côté front (cf. mediaTypes).
   const mediaType = item.mediaType;
-  if (!isShelfType(mediaType)) return null;
 
   return (
     <li>

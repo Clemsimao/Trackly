@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from '@tanstack/react-router';
 import type { TimeToBeat } from '@trackly/contracts';
-import { getFilmDetail, getGameDetail, getSeriesDetail } from '../api/catalog';
+import { getBookDetail, getFilmDetail, getGameDetail, getSeriesDetail } from '../api/catalog';
 import { ApiClientError } from '../api/client';
 import { AddToLibraryPanel } from '../components/library/AddToLibrary';
 import { fr } from '../i18n/fr';
@@ -202,6 +202,46 @@ export function FilmDetailPage() {
             <p className="mt-6 text-sm leading-relaxed text-(--text-muted)">{data.overview}</p>
           ) : null}
           <p className="mt-8 text-xs text-(--text-muted)">{fr.media.attributionTmdb}</p>
+        </>
+      ) : null}
+    </DetailShell>
+  );
+}
+
+export function BookDetailPage() {
+  const { id } = useParams({ from: '/media/book/$id' });
+  const { data, isPending, error } = useQuery({
+    queryKey: ['catalog', 'book', id],
+    queryFn: () => getBookDetail(id),
+  });
+
+  return (
+    <DetailShell isPending={isPending} error={error}>
+      {data ? (
+        <>
+          <Hero backdropUrl={null} posterUrl={data.coverUrl} title={data.title} />
+          <AddToLibraryPanel mediaType="book" externalId={id} />
+          <div className="mt-4 space-y-2">
+            <Chips items={data.subjects} />
+            <MetaRow label={fr.media.authors} value={data.authors.join(', ') || null} />
+            <MetaRow
+              label={fr.media.firstPublish}
+              value={data.firstPublishYear ? String(data.firstPublishYear) : null}
+            />
+            <MetaRow
+              label={fr.media.pages}
+              value={data.medianPages ? `≈ ${data.medianPages}` : null}
+            />
+          </div>
+          {data.description ? (
+            <section className="mt-6">
+              <p className="text-sm leading-relaxed text-(--text-muted)">{data.description}</p>
+              <p className="mt-1 text-xs italic text-(--text-muted)">
+                {fr.media.descriptionEnNote}
+              </p>
+            </section>
+          ) : null}
+          <p className="mt-8 text-xs text-(--text-muted)">{fr.media.attributionOpenLibrary}</p>
         </>
       ) : null}
     </DetailShell>

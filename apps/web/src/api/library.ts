@@ -1,20 +1,24 @@
 import {
   addedResponseSchema,
+  bookEntryDetailSchema,
   filmEntryDetailSchema,
   gameEntryDetailSchema,
   libraryResponseSchema,
   seasonEpisodesResponseSchema,
   seriesEntryDetailSchema,
+  type AddBookBody,
   type AddedResponse,
   type AddFilmBody,
   type AddGameBody,
   type AddOwnershipBody,
   type AddSeriesBody,
+  type BookEntryDetail,
   type FilmEntryDetail,
   type GameEntryDetail,
   type LibraryResponse,
   type SeasonEpisodesResponse,
   type SeriesEntryDetail,
+  type UpdateBookEntryBody,
   type UpdateDurationsBody,
   type UpdateFilmEntryBody,
   type UpdateGameEntryBody,
@@ -134,4 +138,22 @@ export function updateFilmEntry(entryId: string, body: UpdateFilmEntryBody): Pro
 
 export function deleteFilmEntry(entryId: string): Promise<void> {
   return apiFetch<void>(`/api/library/films/${entryId}`, { method: 'DELETE' });
+}
+
+// ── Livres ──────────────────────────────────────────────────────────────────
+
+export async function addBook(body: AddBookBody): Promise<AddedResponse> {
+  return addedResponseSchema.parse(await apiFetch<unknown>('/api/library/books', json(body)));
+}
+
+export async function getBookEntry(entryId: string): Promise<BookEntryDetail> {
+  return bookEntryDetailSchema.parse(await apiFetch<unknown>(`/api/library/books/${entryId}`));
+}
+
+export function updateBookEntry(entryId: string, body: UpdateBookEntryBody): Promise<void> {
+  return apiFetch<void>(`/api/library/books/${entryId}`, patch(body));
+}
+
+export function deleteBookEntry(entryId: string): Promise<void> {
+  return apiFetch<void>(`/api/library/books/${entryId}`, { method: 'DELETE' });
 }

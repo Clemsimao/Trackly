@@ -4,7 +4,6 @@ import type { MediaType } from '@trackly/contracts';
 import { searchCatalog } from '../api/catalog';
 import { MediaCard } from '../components/MediaCard';
 import { fr } from '../i18n/fr';
-import { isShelfType } from '../utils/mediaTypes';
 import { useDebouncedValue } from '../utils/useDebouncedValue';
 
 const TYPE_FILTERS: Array<{ value: MediaType | undefined; label: string }> = [
@@ -12,6 +11,7 @@ const TYPE_FILTERS: Array<{ value: MediaType | undefined; label: string }> = [
   { value: 'game', label: fr.search.typeGame },
   { value: 'film', label: fr.search.typeFilm },
   { value: 'series', label: fr.search.typeSeries },
+  { value: 'book', label: fr.search.typeBook },
 ];
 
 export function SearchPage() {
@@ -20,27 +20,13 @@ export function SearchPage() {
   const query = useDebouncedValue(input.trim(), 300);
   const enabled = query.length >= 2;
 
-  const {
-    data: raw,
-    isFetching,
-    isError,
-  } = useQuery({
+  const { data, isFetching, isError } = useQuery({
     queryKey: ['catalog', 'search', query, type ?? 'all'],
     queryFn: () => searchCatalog(query, type),
     enabled,
     staleTime: 60_000,
     placeholderData: keepPreviousData,
   });
-
-  // Le filtre « Tous » demande aussi les livres à l'API (verticale livrée côté
-  // back), mais l'UI livres n'existe pas encore : on les écarte ici tant que ce
-  // n'est pas le cas, sinon ils s'afficheraient sans fiche derrière.
-  const data = raw
-    ? {
-        results: raw.results.filter((item) => isShelfType(item.mediaType)),
-        degraded: raw.degraded.filter((mediaType) => isShelfType(mediaType)),
-      }
-    : undefined;
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-6">

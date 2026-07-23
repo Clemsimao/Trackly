@@ -8,6 +8,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import type {
+  BookDetail,
   FilmDetail,
   GameDetail,
   MediaType,
@@ -61,6 +62,11 @@ export class CatalogController {
   @Get('series/:id')
   getSeries(@Param('id') id: string): Promise<SeriesDetail> {
     return this.wrap(() => this.catalog.getSeries(id));
+  }
+
+  @Get('books/:id')
+  getBook(@Param('id') id: string): Promise<BookDetail> {
+    return this.wrap(() => this.catalog.getBook(id));
   }
 
   /** Traduit les erreurs de la couche fournisseurs en réponses HTTP normalisées. */

@@ -1,8 +1,10 @@
 import {
+  bookDetailSchema,
   filmDetailSchema,
   gameDetailSchema,
   searchResponseSchema,
   seriesDetailSchema,
+  type BookDetail,
   type FilmDetail,
   type GameDetail,
   type MediaType,
@@ -28,4 +30,8 @@ export async function getFilmDetail(id: string): Promise<FilmDetail> {
 
 export async function getSeriesDetail(id: string): Promise<SeriesDetail> {
   return seriesDetailSchema.parse(await apiFetch<unknown>(`/api/catalog/series/${id}`));
+}
+
+export async function getBookDetail(id: string): Promise<BookDetail> {
+  return bookDetailSchema.parse(await apiFetch<unknown>(`/api/catalog/books/${id}`));
 }

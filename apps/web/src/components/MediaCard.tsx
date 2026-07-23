@@ -1,25 +1,24 @@
 import { Link } from '@tanstack/react-router';
-import type { SearchResultItem } from '@trackly/contracts';
+import type { MediaType, SearchResultItem } from '@trackly/contracts';
 import { fr } from '../i18n/fr';
-import { isShelfType, type ShelfMediaType } from '../utils/mediaTypes';
 import { QuickAddButton } from './library/AddToLibrary';
 
-const TYPE_STYLE: Record<ShelfMediaType, string> = {
+const TYPE_STYLE: Record<MediaType, string> = {
   game: 'bg-primary/15 text-link',
   film: 'bg-progress/15 text-progress',
   series: 'bg-done/15 text-done',
+  book: 'bg-paused/15 text-paused',
 };
 
-const TYPE_PATH: Record<ShelfMediaType, string> = {
+const TYPE_PATH: Record<MediaType, string> = {
   game: '/media/game/$id',
   film: '/media/film/$id',
   series: '/media/series/$id',
+  book: '/media/book/$id',
 };
 
 export function MediaCard({ item }: { item: SearchResultItem }) {
-  // Filet : les livres sont filtrés en amont (SearchPage), on ne les rend jamais.
   const mediaType = item.mediaType;
-  if (!isShelfType(mediaType)) return null;
 
   return (
     <Link
