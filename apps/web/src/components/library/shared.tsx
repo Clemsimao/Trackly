@@ -198,8 +198,11 @@ export function DeleteEntryButton({ onDelete }: { onDelete: () => Promise<void> 
   const mutation = useMutation({
     mutationFn: onDelete,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['library'] });
+      // Quitter la fiche AVANT d'invalider : sinon la query de détail encore
+      // montée refetche la ressource qu'on vient de supprimer (404). Une fois
+      // démontée, elle est inactive et l'invalidation ne rafraîchit que la liste.
       await navigate({ to: '/bibliotheque' });
+      await queryClient.invalidateQueries({ queryKey: ['library'] });
     },
   });
 
