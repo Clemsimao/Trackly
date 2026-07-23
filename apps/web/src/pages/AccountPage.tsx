@@ -24,7 +24,7 @@ export function AccountPage() {
       {user?.deletionScheduledFor ? (
         <ScheduledSection scheduledFor={user.deletionScheduledFor} />
       ) : (
-        <DangerSection />
+        <DangerSection email={user?.email ?? ''} />
       )}
     </main>
   );
@@ -93,7 +93,7 @@ function ExportSection() {
 }
 
 /** RGPD — droit à l'effacement : mot de passe + confirmation explicite. */
-function DangerSection() {
+function DangerSection({ email }: { email: string }) {
   const queryClient = useQueryClient();
   const [password, setPassword] = useState('');
 
@@ -118,6 +118,9 @@ function DangerSection() {
           if (window.confirm(fr.account.dangerConfirm)) mutation.mutate();
         }}
       >
+        {/* Champ username caché : associe le mot de passe au compte pour les
+            gestionnaires de mots de passe et l'accessibilité (recommandation navigateur). */}
+        <input type="text" name="username" autoComplete="username" value={email} readOnly hidden />
         <label className="block text-sm">
           <span className="text-(--text-muted)">{fr.account.dangerPasswordLabel}</span>
           <input
