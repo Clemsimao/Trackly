@@ -25,41 +25,49 @@ export class AccountService {
   ) {}
 
   async exportData(userId: string): Promise<Record<string, unknown>> {
-    const [user, gameEntries, seriesEntries, filmEntries, watches, overrides] = await Promise.all([
-      this.prisma.user.findUniqueOrThrow({
-        where: { id: userId },
-        select: { email: true, displayName: true, createdAt: true },
-      }),
-      this.prisma.gameEntry.findMany({
-        where: { userId },
-        include: {
-          gameWork: { select: { igdbId: true, title: true } },
-          ownerships: { include: { progressUpdates: { orderBy: { createdAt: 'asc' } } } },
-        },
-      }),
-      this.prisma.seriesEntry.findMany({
-        where: { userId },
-        include: { seriesWork: { select: { tmdbId: true, title: true } } },
-      }),
-      this.prisma.filmEntry.findMany({
-        where: { userId },
-        include: { filmWork: { select: { tmdbId: true, title: true } } },
-      }),
-      this.prisma.episodeWatch.findMany({
-        where: { userId },
-        include: {
-          episode: {
-            select: {
-              seasonNumber: true,
-              episodeNumber: true,
-              name: true,
-              seriesWork: { select: { title: true } },
+    const [user, gameEntries, seriesEntries, filmEntries, bookEntries, watches, overrides] =
+      await Promise.all([
+        this.prisma.user.findUniqueOrThrow({
+          where: { id: userId },
+          select: { email: true, displayName: true, createdAt: true },
+        }),
+        this.prisma.gameEntry.findMany({
+          where: { userId },
+          include: {
+            gameWork: { select: { igdbId: true, title: true } },
+            ownerships: { include: { progressUpdates: { orderBy: { createdAt: 'asc' } } } },
+          },
+        }),
+        this.prisma.seriesEntry.findMany({
+          where: { userId },
+          include: { seriesWork: { select: { tmdbId: true, title: true } } },
+        }),
+        this.prisma.filmEntry.findMany({
+          where: { userId },
+          include: { filmWork: { select: { tmdbId: true, title: true } } },
+        }),
+        this.prisma.bookEntry.findMany({
+          where: { userId },
+          include: {
+            bookWork: { select: { olWorkId: true, title: true } },
+            progressUpdates: { orderBy: { createdAt: 'asc' } },
+          },
+        }),
+        this.prisma.episodeWatch.findMany({
+          where: { userId },
+          include: {
+            episode: {
+              select: {
+                seasonNumber: true,
+                episodeNumber: true,
+                name: true,
+                seriesWork: { select: { title: true } },
+              },
             },
           },
-        },
-      }),
-      this.prisma.fieldOverride.findMany({ where: { userId } }),
-    ]);
+        }),
+        this.prisma.fieldOverride.findMany({ where: { userId } }),
+      ]);
 
     return {
       exportedAt: new Date().toISOString(),
@@ -124,6 +132,31 @@ export class AccountService {
         notes: entry.notes,
         favorite: entry.favorite,
         addedAt: entry.createdAt,
+      })),
+      books: bookEntries.map((entry) => ({
+        title: entry.bookWork.title,
+        olWorkId: entry.bookWork.olWorkId,
+        status: entry.status,
+        pagesTotal: entry.pagesTotal,
+        pagesSource: entry.pagesSource,
+        editionIsbn: entry.editionIsbn,
+        currentPage: entry.currentPage,
+        progressPercent: entry.progressPercent,
+        resumeNote: entry.resumeNote,
+        startedAt: entry.startedAt,
+        finishedAt: entry.finishedAt,
+        rating: entry.rating,
+        review: entry.review,
+        notes: entry.notes,
+        favorite: entry.favorite,
+        addedAt: entry.createdAt,
+        journal: entry.progressUpdates.map((u) => ({
+          at: u.createdAt,
+          currentPage: u.currentPage,
+          progressPercent: u.progressPercent,
+          minutesRead: u.minutesRead,
+          note: u.note,
+        })),
       })),
       overrides: overrides.map((override) => ({
         entityType: override.entityType,

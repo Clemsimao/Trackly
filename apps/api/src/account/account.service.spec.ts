@@ -28,6 +28,7 @@ function makePrisma(user: Record<string, unknown> = {}) {
     gameEntry: { findMany: vi.fn().mockResolvedValue([]) },
     seriesEntry: { findMany: vi.fn().mockResolvedValue([]) },
     filmEntry: { findMany: vi.fn().mockResolvedValue([]) },
+    bookEntry: { findMany: vi.fn().mockResolvedValue([]) },
     episodeWatch: { findMany: vi.fn().mockResolvedValue([]) },
     fieldOverride: { findMany: vi.fn().mockResolvedValue([]) },
   } as unknown as PrismaService;
@@ -54,7 +55,7 @@ describe('AccountService — export (RGPD)', () => {
     const data = await service.exportData('u1');
     expect(data.format).toBe('trackly-export-v1');
     expect(data.profile).toMatchObject({ email: 'j@t.fr', displayName: 'Julien' });
-    for (const section of ['games', 'series', 'episodesWatched', 'films', 'overrides']) {
+    for (const section of ['games', 'series', 'episodesWatched', 'films', 'books', 'overrides']) {
       expect(data[section]).toEqual([]);
     }
   });
