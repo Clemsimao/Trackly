@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Levier manuel : GitHub laisse parfois tomber le déclenchement sur push quand
+  # deux poussées arrivent quasi simultanément (0 run créé pour le SHA). Permet
+  # de relancer sans commit vide : `gh workflow run ci.yml --ref main`.
+  workflow_dispatch:
 
 jobs:
   quality:
