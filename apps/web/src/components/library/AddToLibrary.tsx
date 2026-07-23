@@ -7,15 +7,15 @@ import {
   seriesStatusSchema,
   type AddedResponse,
   type GameStatus,
-  type MediaType,
   type SearchResultItem,
 } from '@trackly/contracts';
 import { addFilm, addGame, addSeries } from '../../api/library';
 import { existingEntryId } from '../../api/client';
 import { fr } from '../../i18n/fr';
+import { isShelfType, type ShelfMediaType } from '../../utils/mediaTypes';
 
-/** Chemin de la fiche bibliothèque pour un type de média. */
-export const LIBRARY_PATH: Record<MediaType, string> = {
+/** Chemin de la fiche bibliothèque pour un type de média (hors livres, cf. mediaTypes). */
+export const LIBRARY_PATH: Record<ShelfMediaType, string> = {
   game: '/bibliotheque/jeu/$entryId',
   film: '/bibliotheque/film/$entryId',
   series: '/bibliotheque/serie/$entryId',
@@ -47,6 +47,9 @@ export function QuickAddButton({ item }: { item: SearchResultItem }) {
       if (existing) setEntryId(existing);
     },
   });
+
+  // Les livres sont écartés en amont (SearchPage) ; ce filet garantit le typage.
+  if (!isShelfType(item.mediaType)) return null;
 
   if (entryId) {
     return (
@@ -86,7 +89,9 @@ const SERIES_STATUSES = seriesStatusSchema.options;
 const FILM_STATUSES = filmStatusSchema.options;
 
 interface PanelProps {
-  mediaType: MediaType;
+  // Monté uniquement sur les fiches jeu/série/film ; les livres n'ont pas encore
+  // de fiche côté front (cf. mediaTypes), d'où ShelfMediaType et non MediaType.
+  mediaType: ShelfMediaType;
   externalId: string;
   /** Plateformes connues du jeu (IGDB) — proposées au choix, avec saisie libre. */
   platforms?: string[];

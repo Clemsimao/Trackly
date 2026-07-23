@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import type { DashboardItem, DashboardResponse, MediaType } from '@trackly/contracts';
+import type { DashboardItem, DashboardResponse } from '@trackly/contracts';
 import { logout, meQueryOptions } from '../api/auth';
 import { purgerCacheLocal } from '../api/persist';
 import { getDashboard } from '../api/dashboard';
 import { ApiStatus } from '../components/ApiStatus';
 import { fr } from '../i18n/fr';
+import { isShelfType, type ShelfMediaType } from '../utils/mediaTypes';
 import { formatHoursFromSeconds } from '../utils/format';
 
 export function HomePage() {
@@ -190,23 +191,27 @@ function mediaLines(data: DashboardResponse): MediaLine[] {
   ];
 }
 
-const ITEM_PATH: Record<MediaType, string> = {
+const ITEM_PATH: Record<ShelfMediaType, string> = {
   game: '/bibliotheque/jeu/$entryId',
   series: '/bibliotheque/serie/$entryId',
   film: '/bibliotheque/film/$entryId',
 };
 
-const ITEM_ICON: Record<MediaType, string> = {
+const ITEM_ICON: Record<ShelfMediaType, string> = {
   game: '🎮',
   series: '📺',
   film: '🎬',
 };
 
 function InProgressRow({ item }: { item: DashboardItem }) {
+  // Les livres ne sont pas encore rendus côté front (cf. mediaTypes).
+  const mediaType = item.mediaType;
+  if (!isShelfType(mediaType)) return null;
+
   return (
     <li>
       <Link
-        to={ITEM_PATH[item.mediaType]}
+        to={ITEM_PATH[mediaType]}
         params={{ entryId: item.entryId }}
         className="group flex items-center gap-3 rounded-xl border border-(--border) bg-(--surface) p-2.5 transition hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
       >
@@ -220,7 +225,7 @@ function InProgressRow({ item }: { item: DashboardItem }) {
             />
           ) : (
             <div className="flex h-full items-center justify-center text-lg" aria-hidden>
-              {ITEM_ICON[item.mediaType]}
+              {ITEM_ICON[mediaType]}
             </div>
           )}
         </div>

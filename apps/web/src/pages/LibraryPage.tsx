@@ -6,13 +6,15 @@ import type {
   LibraryGameItem,
   LibraryResponse,
   LibrarySeriesItem,
-  MediaType,
 } from '@trackly/contracts';
 import { getLibrary } from '../api/library';
 import { fr } from '../i18n/fr';
 import { formatMinutes } from '../utils/format';
+import type { ShelfMediaType } from '../utils/mediaTypes';
 
-type TypeFilter = MediaType | 'all';
+// Les livres ne sont pas encore branchés côté front (cf. mediaTypes) : la
+// bibliothèque ne les liste pas et le filtre par type ne les propose pas.
+type TypeFilter = ShelfMediaType | 'all';
 
 const TYPE_FILTERS: Array<{ value: TypeFilter; label: string }> = [
   { value: 'all', label: fr.library.filters.all },
@@ -21,7 +23,7 @@ const TYPE_FILTERS: Array<{ value: TypeFilter; label: string }> = [
   { value: 'film', label: fr.library.filters.films },
 ];
 
-const STATUS_OPTIONS: Record<MediaType, Record<string, string>> = {
+const STATUS_OPTIONS: Record<ShelfMediaType, Record<string, string>> = {
   game: fr.library.gameStatus,
   series: fr.library.seriesStatus,
   film: fr.library.filmStatus,
@@ -30,7 +32,7 @@ const STATUS_OPTIONS: Record<MediaType, Record<string, string>> = {
 /** Ligne homogène pour l'affichage et le filtrage, quel que soit le type. */
 interface Row {
   key: string;
-  mediaType: MediaType;
+  mediaType: ShelfMediaType;
   entryId: string;
   title: string;
   posterUrl: string | null;
@@ -109,7 +111,7 @@ function gameProgress(item: LibraryGameItem): string | null {
   return parts.length > 0 ? parts.join(' · ') : null;
 }
 
-const DETAIL_PATH: Record<MediaType, string> = {
+const DETAIL_PATH: Record<ShelfMediaType, string> = {
   game: '/bibliotheque/jeu/$entryId',
   series: '/bibliotheque/serie/$entryId',
   film: '/bibliotheque/film/$entryId',
