@@ -27,9 +27,18 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   });
 
   if (!response.ok) {
-    if (response.status === 401) notifyUnauthorized();
     const body: unknown = await response.json().catch(() => null);
     const parsed = apiErrorSchema.safeParse(body);
+    // /auth/me utilise volontairement 401 pour représenter l'état anonyme.
+    // Le purger ici supprimerait la requête React Query pendant sa résolution
+    // et bloquerait les routes publiques d'inscription/connexion.
+    if (
+      response.status === 401 &&
+      path !== '/api/auth/me' &&
+      (!parsed.success || parsed.data.code === 'UNAUTHENTICATED')
+    ) {
+      notifyUnauthorized();
+    }
     if (parsed.success) {
       throw new ApiClientError(parsed.data.statusCode, parsed.data.code, parsed.data.message, body);
     }

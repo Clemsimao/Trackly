@@ -27,4 +27,25 @@ describe('apiFetch', () => {
     await expect(apiFetch('/api/library')).rejects.toBeInstanceOf(ApiClientError);
     expect(listener).toHaveBeenCalledOnce();
   });
+
+  it('laisse fetchMe traiter lui-même le 401 attendu d’un visiteur anonyme', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            statusCode: 401,
+            code: 'UNAUTHENTICATED',
+            message: 'Connexion requise',
+          }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } },
+        ),
+      ),
+    );
+    const listener = vi.fn();
+    window.addEventListener(UNAUTHORIZED_EVENT, listener, { once: true });
+
+    await expect(apiFetch('/api/auth/me')).rejects.toBeInstanceOf(ApiClientError);
+    expect(listener).not.toHaveBeenCalled();
+  });
 });
