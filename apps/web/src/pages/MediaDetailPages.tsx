@@ -7,6 +7,7 @@ import { ApiClientError } from '../api/client';
 import { AddToLibraryPanel } from '../components/library/AddToLibrary';
 import { fr } from '../i18n/fr';
 import { formatHoursFromSeconds, formatMinutes } from '../utils/format';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 // ── Blocs partagés ──────────────────────────────────────────────────────────
 
@@ -141,6 +142,7 @@ export function GameDetailPage() {
     queryKey: ['catalog', 'game', id],
     queryFn: () => getGameDetail(id),
   });
+  useDocumentTitle(data?.title);
 
   return (
     <DetailShell isPending={isPending} error={error}>
@@ -179,6 +181,7 @@ export function FilmDetailPage() {
     queryKey: ['catalog', 'film', id],
     queryFn: () => getFilmDetail(id),
   });
+  useDocumentTitle(data?.title);
 
   return (
     <DetailShell isPending={isPending} error={error}>
@@ -214,6 +217,7 @@ export function BookDetailPage() {
     queryKey: ['catalog', 'book', id],
     queryFn: () => getBookDetail(id),
   });
+  useDocumentTitle(data?.title);
 
   return (
     <DetailShell isPending={isPending} error={error}>
@@ -254,6 +258,7 @@ export function SeriesDetailPage() {
     queryKey: ['catalog', 'series', id],
     queryFn: () => getSeriesDetail(id),
   });
+  useDocumentTitle(data?.title);
 
   return (
     <DetailShell isPending={isPending} error={error}>

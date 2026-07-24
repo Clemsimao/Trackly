@@ -8,7 +8,7 @@ import {
   Outlet,
   redirect,
 } from '@tanstack/react-router';
-import type { PublicUser } from '@trackly/contracts';
+import type { MediaType, PublicUser } from '@trackly/contracts';
 import { meQueryOptions } from './api/auth';
 import { purgerCacheLocal } from './api/persist';
 import { OfflineBanner } from './components/OfflineBanner';
@@ -28,6 +28,7 @@ import {
   GameDetailPage,
   SeriesDetailPage,
 } from './pages/MediaDetailPages';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { SearchPage } from './pages/SearchPage';
 import { isDark, toggleTheme } from './theme';
 
@@ -165,9 +166,16 @@ const accueilRoute = createRoute({
   component: HomePage,
 });
 
+const SEARCH_TYPES: readonly MediaType[] = ['game', 'film', 'series', 'book'];
+
 const rechercheRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/recherche',
+  // La recherche vit dans l'URL : partageable, rechargeable, retour cohérent.
+  validateSearch: (search: Record<string, unknown>): { q?: string; type?: MediaType } => ({
+    q: typeof search.q === 'string' && search.q.trim() ? search.q : undefined,
+    type: SEARCH_TYPES.includes(search.type as MediaType) ? (search.type as MediaType) : undefined,
+  }),
   beforeLoad: requireAuth,
   component: SearchPage,
 });
@@ -320,7 +328,11 @@ const routeTree = rootRoute.addChildren([
 ]);
 
 export function createAppRouter(queryClient: QueryClient) {
-  return createRouter({ routeTree, context: { queryClient } });
+  return createRouter({
+    routeTree,
+    context: { queryClient },
+    defaultNotFoundComponent: NotFoundPage,
+  });
 }
 
 declare module '@tanstack/react-router' {

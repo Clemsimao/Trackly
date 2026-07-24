@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { GameDetail, SearchResultItem } from '@trackly/contracts';
+import { fetchExternal, waitBeforeRetry } from '../../common/http';
 import {
   NotFoundInProviderError,
   ProviderNotConfiguredError,
@@ -18,6 +19,7 @@ const API_URL = 'https://api.igdb.com/v4';
 const TOKEN_URL = 'https://id.twitch.tv/oauth2/token';
 /** IGDB limite à 4 req/s : on espace nos appels de 300 ms (docs/cadrage/05). */
 const MIN_REQUEST_INTERVAL_MS = 300;
+const MAX_429_RETRIES = 2;
 
 @Injectable()
 export class IgdbClient {
@@ -72,11 +74,11 @@ export class IgdbClient {
     return next;
   }
 
-  private async doQuery<T>(endpoint: string, body: string): Promise<T> {
+  private async doQuery<T>(endpoint: string, body: string, attempt = 0): Promise<T> {
     const token = await this.getToken();
     const clientId = this.config.get<string>('IGDB_CLIENT_ID') as string;
 
-    const response = await fetch(`${API_URL}/${endpoint}`, {
+    const response = await fetchExternal(`${API_URL}/${endpoint}`, {
       method: 'POST',
       headers: {
         'Client-ID': clientId,
@@ -87,9 +89,10 @@ export class IgdbClient {
     });
 
     if (response.status === 429) {
-      this.logger.warn('IGDB 429 — nouvel essai dans 1 s');
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return this.doQuery<T>(endpoint, body);
+      if (attempt >= MAX_429_RETRIES) throw new ProviderRequestError('igdb', 429);
+      this.logger.warn(`IGDB 429 — nouvel essai ${attempt + 1}/${MAX_429_RETRIES}`);
+      await waitBeforeRetry(response, attempt);
+      return this.doQuery<T>(endpoint, body, attempt + 1);
     }
     if (response.status === 401) {
       // Jeton révoqué côté Twitch : on l'oublie, le prochain appel en refera un
@@ -115,7 +118,7 @@ export class IgdbClient {
     url.searchParams.set('client_secret', clientSecret);
     url.searchParams.set('grant_type', 'client_credentials');
 
-    const response = await fetch(url, { method: 'POST' });
+    const response = await fetchExternal(url, { method: 'POST' });
     if (!response.ok) throw new ProviderRequestError('igdb-auth', response.status);
     const data = (await response.json()) as { access_token: string; expires_in: number };
 

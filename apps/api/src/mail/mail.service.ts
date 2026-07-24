@@ -1,10 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { fetchExternal } from '../common/http';
 
 /**
  * Envoi d'e-mails transactionnels via l'API HTTP Resend.
- * Sans RESEND_API_KEY configurée, le lien est journalisé (mode dev/démo) :
- * l'application reste utilisable, l'e-mail réel s'active en posant la clé.
+ * En développement, une configuration mail absente dégrade l'envoi sans jamais
+ * écrire le destinataire ou les jetons présents dans le message dans les logs.
+ * En production, la validation d'environnement interdit cette configuration.
  */
 @Injectable()
 export class MailService {
@@ -60,25 +62,28 @@ export class MailService {
   private async send(to: string, subject: string, lines: string[]): Promise<void> {
     const apiKey = this.config.get<string>('RESEND_API_KEY');
     if (!apiKey) {
-      this.logger.warn(`RESEND_API_KEY absente — e-mail « ${subject} » pour ${to} :`);
-      this.logger.warn(lines.join('\n'));
+      this.logger.warn(`RESEND_API_KEY absente — e-mail « ${subject} » non envoyé`);
       return;
     }
 
     const from = this.config.get<string>('MAIL_FROM') ?? 'Trackly <onboarding@resend.dev>';
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ from, to: [to], subject, text: lines.join('\n') }),
-    });
+    try {
+      const response = await fetchExternal('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ from, to: [to], subject, text: lines.join('\n') }),
+      });
 
-    if (!response.ok) {
-      // On journalise sans faire échouer la requête : la réponse de /forgot-password
-      // doit rester identique quoi qu'il arrive (anti-énumération, story A3)
-      this.logger.error(`Échec d'envoi Resend (${response.status}) pour ${to}`);
+      if (!response.ok) {
+        // Ne pas faire varier /forgot-password selon l'existence du compte.
+        this.logger.error(`Échec d'envoi Resend (${response.status})`);
+      }
+    } catch (error) {
+      // Même réponse pour un e-mail connu ou non, y compris sur panne réseau.
+      this.logger.error('Resend indisponible', error);
     }
   }
 }

@@ -32,10 +32,11 @@ export class ResetTokenService {
       where: { tokenHash: hashToken(token) },
     });
     if (!record || record.usedAt !== null || record.expiresAt < new Date()) return null;
-    await this.prisma.passwordResetToken.update({
-      where: { id: record.id },
+    const consumed = await this.prisma.passwordResetToken.updateMany({
+      where: { id: record.id, usedAt: null, expiresAt: { gt: new Date() } },
       data: { usedAt: new Date() },
     });
+    if (consumed.count !== 1) return null;
     return record.userId;
   }
 }

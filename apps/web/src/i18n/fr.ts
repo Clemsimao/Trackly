@@ -8,6 +8,12 @@ export const fr = {
     name: 'Trackly',
     tagline: 'Ta bibliothèque de jeux, séries, films et livres',
   },
+  notFound: {
+    title: 'Page introuvable',
+    code: '404',
+    message: 'Cette page n’existe pas ou a été déplacée.',
+    backHome: 'Retour à l’accueil',
+  },
   deletionCancel: {
     title: 'Annuler la suppression de ton compte',
     pending: 'Annulation en cours…',

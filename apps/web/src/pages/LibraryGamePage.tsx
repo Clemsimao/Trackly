@@ -35,6 +35,7 @@ import {
 } from '../components/library/shared';
 import { fr } from '../i18n/fr';
 import { formatHoursFromSeconds } from '../utils/format';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 export function LibraryGamePage() {
   const { entryId } = useParams({ from: '/bibliotheque/jeu/$entryId' });
@@ -42,6 +43,7 @@ export function LibraryGamePage() {
     queryKey: ['library', 'game', entryId],
     queryFn: () => getGameEntry(entryId),
   });
+  useDocumentTitle(data?.work.title);
 
   return (
     <LibraryShell isPending={isPending} error={error}>

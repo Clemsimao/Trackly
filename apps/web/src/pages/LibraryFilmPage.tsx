@@ -14,6 +14,7 @@ import {
   inputClass,
 } from '../components/library/shared';
 import { fr } from '../i18n/fr';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 import { formatMinutes } from '../utils/format';
 
 export function LibraryFilmPage() {
@@ -22,6 +23,7 @@ export function LibraryFilmPage() {
     queryKey: ['library', 'film', entryId],
     queryFn: () => getFilmEntry(entryId),
   });
+  useDocumentTitle(data?.work.title);
 
   return (
     <LibraryShell isPending={isPending} error={error}>

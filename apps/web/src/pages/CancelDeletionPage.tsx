@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Link, useSearch } from '@tanstack/react-router';
 import { cancelAccountDeletionByToken } from '../api/account';
 import { fr } from '../i18n/fr';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 /**
  * Annulation depuis le lien reçu par e-mail (CA A5). Publique : c'est le
@@ -10,6 +11,7 @@ import { fr } from '../i18n/fr';
  * L'annulation part au chargement — le lien n'existe que pour ça.
  */
 export function CancelDeletionPage() {
+  useDocumentTitle(fr.deletionCancel.title);
   const { token } = useSearch({ from: '/annulation-suppression' });
   const mutation = useMutation({ mutationFn: cancelAccountDeletionByToken });
   const lance = useRef(false);

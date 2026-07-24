@@ -2,7 +2,7 @@
   "name": "@trackly/web",
   "version": "0.1.0",
   "private": true,
-  "description": "Front Trackly — React + Vite, PWA à venir (Lot 5)",
+  "description": "Front Trackly — React + Vite, PWA installable",
   "type": "module",
   "scripts": {
     "dev": "vite",

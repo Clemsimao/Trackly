@@ -4,8 +4,10 @@ import { meQueryOptions } from '../api/auth';
 import { cancelAccountDeletion, downloadExport, requestAccountDeletion } from '../api/account';
 import { ApiClientError } from '../api/client';
 import { fr } from '../i18n/fr';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 export function AccountPage() {
+  useDocumentTitle(fr.account.title);
   const { data: user } = useSuspenseQuery(meQueryOptions);
 
   return (

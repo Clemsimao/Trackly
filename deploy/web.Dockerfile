@@ -16,4 +16,5 @@ RUN pnpm --filter @trackly/contracts build && pnpm --filter @trackly/web build
 
 FROM nginx:1.27-alpine
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY deploy/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY --from=builder /app/apps/web/dist /usr/share/nginx/html

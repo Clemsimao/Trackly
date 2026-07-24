@@ -22,6 +22,7 @@ import {
   inputClass,
 } from '../components/library/shared';
 import { fr } from '../i18n/fr';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 import { formatHoursFromSeconds, formatMinutes } from '../utils/format';
 
 export function LibrarySeriesPage() {
@@ -30,6 +31,7 @@ export function LibrarySeriesPage() {
     queryKey: ['library', 'series', entryId],
     queryFn: () => getSeriesEntry(entryId),
   });
+  useDocumentTitle(data?.work.title);
 
   return (
     <LibraryShell isPending={isPending} error={error}>

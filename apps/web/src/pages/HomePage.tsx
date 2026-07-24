@@ -7,8 +7,10 @@ import { getDashboard } from '../api/dashboard';
 import { ApiStatus } from '../components/ApiStatus';
 import { fr } from '../i18n/fr';
 import { formatHoursFromSeconds } from '../utils/format';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 export function HomePage() {
+  useDocumentTitle(fr.nav.home);
   const { data: user } = useSuspenseQuery(meQueryOptions);
   const queryClient = useQueryClient();
   const navigate = useNavigate();

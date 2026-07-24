@@ -1,5 +1,11 @@
 import { apiErrorSchema } from '@trackly/contracts';
 
+export const UNAUTHORIZED_EVENT = 'trackly:unauthorized';
+
+export function notifyUnauthorized(): void {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+}
+
 /** Erreur API normalisée (forme définie dans @trackly/contracts). */
 export class ApiClientError extends Error {
   constructor(
@@ -21,6 +27,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   });
 
   if (!response.ok) {
+    if (response.status === 401) notifyUnauthorized();
     const body: unknown = await response.json().catch(() => null);
     const parsed = apiErrorSchema.safeParse(body);
     if (parsed.success) {

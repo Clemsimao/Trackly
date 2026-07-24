@@ -2,13 +2,16 @@ import type { ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { meQueryOptions } from '../api/auth';
+import { purgerCacheLocal } from '../api/persist';
 import { ForgotPasswordForm } from '../components/auth/ForgotPasswordForm';
 import { LoginForm } from '../components/auth/LoginForm';
 import { RegisterForm } from '../components/auth/RegisterForm';
 import { ResetPasswordForm } from '../components/auth/ResetPasswordForm';
 import { fr } from '../i18n/fr';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 function AuthCard({ title, children }: { title: string; children: ReactNode }) {
+  useDocumentTitle(title);
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-10">
       <div className="rounded-2xl border border-(--border) bg-(--surface) p-6 shadow-sm">
@@ -28,6 +31,7 @@ export function LoginPage() {
     <AuthCard title={fr.auth.loginTitle}>
       <LoginForm
         onSuccess={async (user) => {
+          await purgerCacheLocal(queryClient);
           queryClient.setQueryData(meQueryOptions.queryKey, user);
           await navigate({ to: search.redirect ?? '/accueil' });
         }}
@@ -58,6 +62,7 @@ export function RegisterPage() {
     <AuthCard title={fr.auth.registerTitle}>
       <RegisterForm
         onSuccess={async (user) => {
+          await purgerCacheLocal(queryClient);
           queryClient.setQueryData(meQueryOptions.queryKey, user);
           await navigate({ to: '/accueil' });
         }}

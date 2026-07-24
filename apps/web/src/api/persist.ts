@@ -40,4 +40,7 @@ export const buster = __BUILD_ID__;
 export async function purgerCacheLocal(queryClient: QueryClient): Promise<void> {
   queryClient.clear();
   await persister.removeClient();
+  // Les jaquettes peuvent révéler les titres consultés par l'utilisateur
+  // précédent sur un appareil partagé.
+  if (typeof caches !== 'undefined') await caches.delete('media-images');
 }

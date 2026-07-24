@@ -23,8 +23,10 @@ mkdir -p /opt/trackly && cd /opt/trackly
 cat > .env <<'EOF'
 GHCR_OWNER=clemsimao   # toujours en minuscules (règle des noms d'images Docker)
 TAG=latest
-POSTGRES_PASSWORD=<généré : openssl rand -base64 24>
+POSTGRES_PASSWORD=<généré : openssl rand -hex 32>
 CLOUDFLARE_TUNNEL_TOKEN=<token de l'étape 2>
+APP_URL=https://trackly.<ton-domaine>
+RESEND_API_KEY=<clé API Resend>
 EOF
 chmod 600 .env
 docker compose -f compose.prod.yml up -d

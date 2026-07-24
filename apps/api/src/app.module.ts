@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { SessionGuard } from './auth/session.guard';
 import { CatalogModule } from './catalog/catalog.module';
 import { AppThrottlerGuard } from './common/throttler.guard';
+import { validateEnvironment } from './config/environment';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthModule } from './health/health.module';
 import { LibraryModule } from './library/library.module';
@@ -15,7 +16,12 @@ import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      // Les scripts pnpm peuvent s'exécuter depuis la racine ou apps/api.
+      envFilePath: ['.env', '../../.env'],
+      validate: validateEnvironment,
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',

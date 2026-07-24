@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import type { MediaType } from '@trackly/contracts';
 import { searchCatalog } from '../api/catalog';
 import { MediaCard } from '../components/MediaCard';
 import { fr } from '../i18n/fr';
 import { useDebouncedValue } from '../utils/useDebouncedValue';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 const TYPE_FILTERS: Array<{ value: MediaType | undefined; label: string }> = [
   { value: undefined, label: fr.search.typeAll },
@@ -15,10 +17,29 @@ const TYPE_FILTERS: Array<{ value: MediaType | undefined; label: string }> = [
 ];
 
 export function SearchPage() {
-  const [input, setInput] = useState('');
-  const [type, setType] = useState<MediaType | undefined>(undefined);
+  useDocumentTitle(fr.search.title);
+  const navigate = useNavigate();
+  const { q, type } = useSearch({ from: '/recherche' });
+
+  // Le champ garde un état local (frappe fluide) ; l'URL est la source de vérité
+  // rafraîchie après la pause de saisie — recherche partageable et rechargeable.
+  const [input, setInput] = useState(q ?? '');
   const query = useDebouncedValue(input.trim(), 300);
   const enabled = query.length >= 2;
+
+  useEffect(() => {
+    const next = query.length >= 2 ? query : undefined;
+    if (next !== (q ?? undefined)) {
+      void navigate({ to: '/recherche', search: (prev) => ({ ...prev, q: next }), replace: true });
+    }
+  }, [query, q, navigate]);
+
+  const setType = (value: MediaType | undefined) =>
+    void navigate({
+      to: '/recherche',
+      search: (prev) => ({ ...prev, type: value }),
+      replace: true,
+    });
 
   const { data, isFetching, isError } = useQuery({
     queryKey: ['catalog', 'search', query, type ?? 'all'],

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { BookDetail, SearchResultItem } from '@trackly/contracts';
+import { fetchExternal, waitBeforeRetry } from '../../common/http';
 import { NotFoundInProviderError, ProviderRequestError } from '../provider.errors';
 import {
   extractWorkDescription,
@@ -69,7 +70,7 @@ export class OpenLibraryClient {
     const url = new URL(`${BASE_URL}${path}`);
     for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
 
-    const response = await fetch(url, {
+    const response = await fetchExternal(url, {
       headers: {
         // Identification demandée par la politique d'usage d'Open Library
         'User-Agent': 'Trackly/0.1 (suivi personnel de médias ; auto-hébergé)',
@@ -79,9 +80,9 @@ export class OpenLibraryClient {
 
     if (response.status === 404) throw new NotFoundInProviderError('openlibrary', path);
     if (response.status === 429) {
-      this.logger.warn('Open Library 429 — nouvel essai dans 1 s');
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const retry = await fetch(url, {
+      this.logger.warn('Open Library 429 — nouvel essai borné');
+      await waitBeforeRetry(response, 0);
+      const retry = await fetchExternal(url, {
         headers: {
           'User-Agent': 'Trackly/0.1 (suivi personnel de médias ; auto-hébergé)',
           Accept: 'application/json',

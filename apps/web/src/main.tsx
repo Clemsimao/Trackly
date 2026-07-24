@@ -3,7 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { RouterProvider } from '@tanstack/react-router';
-import { buster, DUREE_MAX_MS, persister } from './api/persist';
+import { UNAUTHORIZED_EVENT } from './api/client';
+import { buster, DUREE_MAX_MS, persister, purgerCacheLocal } from './api/persist';
 import { createAppRouter } from './router';
 // Police auto-hébergée (0 €, hors ligne, sans CDN tiers) — direction « Minimal & net »
 import '@fontsource-variable/inter';
@@ -20,6 +21,12 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+if (typeof window !== 'undefined') {
+  window.addEventListener(UNAUTHORIZED_EVENT, () => {
+    void purgerCacheLocal(queryClient);
+  });
+}
 
 const router = createAppRouter(queryClient);
 

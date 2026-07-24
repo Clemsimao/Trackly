@@ -1,9 +1,10 @@
 import { deletionScheduledSchema, type DeletionScheduled } from '@trackly/contracts';
-import { apiFetch } from './client';
+import { apiFetch, notifyUnauthorized } from './client';
 
 /** RGPD — télécharge l'export JSON complet des données personnelles. */
 export async function downloadExport(): Promise<void> {
   const response = await fetch('/api/account/export');
+  if (response.status === 401) notifyUnauthorized();
   if (!response.ok) throw new Error(`Export impossible (${response.status})`);
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);

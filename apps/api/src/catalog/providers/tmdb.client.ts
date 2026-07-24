@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { FilmDetail, SearchResultItem, SeriesDetail } from '@trackly/contracts';
+import { fetchExternal, waitBeforeRetry } from '../../common/http';
 import {
   NotFoundInProviderError,
   ProviderNotConfiguredError,
@@ -76,16 +77,16 @@ export class TmdbClient {
     url.searchParams.set('language', 'fr-FR');
     for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
 
-    const response = await fetch(url, {
+    const response = await fetchExternal(url, {
       headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
     });
 
     if (response.status === 404) throw new NotFoundInProviderError('tmdb', path);
     if (response.status === 429) {
       // Back-off unique puis nouvel essai (docs/cadrage/05 : respecter le 429)
-      this.logger.warn('TMDB 429 — nouvel essai dans 1 s');
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const retry = await fetch(url, {
+      this.logger.warn('TMDB 429 — nouvel essai borné');
+      await waitBeforeRetry(response, 0);
+      const retry = await fetchExternal(url, {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       });
       if (!retry.ok) throw new ProviderRequestError('tmdb', retry.status);

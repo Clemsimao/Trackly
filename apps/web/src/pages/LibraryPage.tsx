@@ -12,6 +12,7 @@ import type {
 import { getLibrary } from '../api/library';
 import { fr } from '../i18n/fr';
 import { formatMinutes } from '../utils/format';
+import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 type TypeFilter = MediaType | 'all';
 
@@ -140,6 +141,21 @@ const DETAIL_PATH: Record<MediaType, string> = {
   book: '/bibliotheque/livre/$entryId',
 };
 
+/**
+ * Les fournisseurs livrent le même genre en deux langues (IGDB en anglais, TMDB
+ * en français) : « Adventure » et « Aventure » apparaissaient en double dans le
+ * filtre. On replie les doublons connus sur un libellé canonique, appliqué à la
+ * fois aux options ET au filtrage pour que la sélection reste cohérente.
+ */
+const GENRE_CANON: Record<string, string> = {
+  adventure: 'Aventure',
+  aventure: 'Aventure',
+};
+
+function canonGenre(raw: string): string {
+  return GENRE_CANON[raw.toLowerCase()] ?? raw;
+}
+
 const STATUS_BADGE: Record<string, string> = {
   PLAYING: 'bg-progress/15 text-progress',
   WATCHING: 'bg-progress/15 text-progress',
@@ -154,6 +170,7 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 export function LibraryPage() {
+  useDocumentTitle(fr.library.title);
   const { data, isPending, isError } = useQuery({ queryKey: ['library'], queryFn: getLibrary });
   const [type, setType] = useState<TypeFilter>('all');
   const [status, setStatus] = useState('');
@@ -167,13 +184,13 @@ export function LibraryPage() {
     (row) =>
       (type === 'all' || row.mediaType === type) &&
       (!status || row.status === status) &&
-      (!genre || row.genres.includes(genre)) &&
+      (!genre || row.genres.some((g) => canonGenre(g) === genre)) &&
       (!platform || row.platforms.includes(platform)) &&
       (!favoritesOnly || row.favorite),
   );
 
   const typedRows = type === 'all' ? rows : rows.filter((row) => row.mediaType === type);
-  const genres = [...new Set(typedRows.flatMap((row) => row.genres))].sort();
+  const genres = [...new Set(typedRows.flatMap((row) => row.genres.map(canonGenre)))].sort();
   const platforms = [...new Set(rows.flatMap((row) => row.platforms))].sort();
 
   return (

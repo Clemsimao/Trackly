@@ -2,7 +2,9 @@
 
 Application web (responsive + PWA installable) de suivi personnel des jeux vidéo, séries et films : bibliothèque unifiée, statuts et progression propres à chaque média, temps restant estimé, assistant de recommandation de films.
 
-**Statut : Lot 0 livré** (socle technique) — développement de la V1 en cours, voir le [plan de lots](docs/cadrage/13-plan-de-lots.md).
+**Statut : V1 en cours** — authentification, catalogue, bibliothèque, livres,
+PWA hors ligne et droits RGPD sont implémentés. Voir le
+[plan de lots](docs/cadrage/13-plan-de-lots.md).
 
 ## Démarrage rapide (dev)
 
@@ -26,7 +28,7 @@ Qualité : `pnpm lint` · `pnpm typecheck` · `pnpm test` · `pnpm format` (hook
 ## Structure
 
 ```
-apps/web            React + Vite + Tailwind (PWA au Lot 5)
+apps/web            React + Vite + Tailwind, PWA installable
 apps/api            NestJS + Prisma (modules par domaine métier)
 packages/contracts  Contrat partagé front/back (types + schémas Zod)
 deploy/             Dockerfiles, compose de production, guide Proxmox
