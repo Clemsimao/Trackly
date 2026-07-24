@@ -45,7 +45,10 @@ test('bibliothèque vide et budget temps vide', async ({ page }) => {
   await page.getByRole('button', { name: /se connecter/i }).click();
   await expect(page).toHaveURL(/\/accueil/);
 
-  await page.getByRole('link', { name: /^bibliothèque$/i }).click();
+  await page
+    .getByRole('link', { name: /bibliothèque/i })
+    .first()
+    .click();
   await expect(page.getByText(/ta bibliothèque est vide/i)).toBeVisible();
 });
 
