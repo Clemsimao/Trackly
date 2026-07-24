@@ -14,10 +14,20 @@ describe('validateEnvironment', () => {
     });
   });
 
-  it('refuse la production sans HTTPS ni fournisseur mail', () => {
+  it('refuse une URL publique sans HTTPS en production', () => {
     expect(() => validateEnvironment({ ...base, NODE_ENV: 'production' })).toThrow(
-      /APP_URL.*HTTPS.*RESEND_API_KEY/,
+      /APP_URL.*HTTPS/,
     );
+  });
+
+  it('peut démarrer sans fournisseur mail sans journaliser les messages', () => {
+    const environment = validateEnvironment({
+      ...base,
+      NODE_ENV: 'production',
+      APP_URL: 'https://trackly.test',
+    });
+    expect(environment.NODE_ENV).toBe('production');
+    expect(environment).not.toHaveProperty('RESEND_API_KEY');
   });
 
   it('refuse une configuration IGDB partielle', () => {

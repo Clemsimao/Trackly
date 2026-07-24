@@ -27,13 +27,6 @@ export function validateEnvironment(raw: Record<string, unknown>): Environment {
             message: 'APP_URL doit utiliser HTTPS en production',
           });
         }
-        if (!env.RESEND_API_KEY) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['RESEND_API_KEY'],
-            message: 'RESEND_API_KEY est requise en production',
-          });
-        }
       }
 
       const hasIgdbId = Boolean(env.IGDB_CLIENT_ID);
