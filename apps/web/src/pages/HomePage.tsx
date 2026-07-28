@@ -88,18 +88,48 @@ function DashboardOverview() {
 
   return (
     <div className="mt-8">
-      {hero ? (
-        <ResumeHero item={hero} />
-      ) : (
-        <div className="rounded-xl border border-dashed border-(--border) px-4 py-6">
-          <p className="text-sm text-(--text-muted)">{fr.library.home.empty}</p>
-        </div>
-      )}
+      {hero ? <ResumeHero item={hero} /> : <EmptyResume />}
 
       {reste.length > 0 ? <Shelf items={reste} /> : null}
 
       <BudgetStrip data={data} />
     </div>
+  );
+}
+
+/**
+ * Rien en cours : une invitation, avec les deux issues possibles. Le lien vers
+ * la bibliothèque doit rester présent ici — c'est la seule porte de sortie de
+ * l'écran quand il n'y a rien à reprendre.
+ */
+function EmptyResume() {
+  return (
+    <section
+      aria-labelledby="resume-heading"
+      className="rounded-xl border border-dashed border-(--border) px-5 py-8 text-center"
+    >
+      <h2 id="resume-heading" className="font-display text-lg font-semibold">
+        {fr.library.home.emptyTitle}
+      </h2>
+      <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-(--text-muted)">
+        {fr.library.home.empty}
+      </p>
+      <div className="mt-5 flex flex-wrap justify-center gap-2.5">
+        <Link
+          to="/bibliotheque"
+          className="rounded-lg border border-(--border) px-3.5 py-2 text-sm font-medium transition hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          {fr.library.home.seeLibrary}
+        </Link>
+        <Link
+          to="/recherche"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          <Icon name="search" className="h-4 w-4" />
+          {fr.library.emptyCta}
+        </Link>
+      </div>
+    </section>
   );
 }
 

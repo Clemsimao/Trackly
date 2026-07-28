@@ -45,10 +45,13 @@ test('bibliothèque vide et budget temps vide', async ({ page }) => {
   await page.getByRole('button', { name: /se connecter/i }).click();
   await expect(page).toHaveURL(/\/accueil/);
 
-  await page
-    .getByRole('link', { name: /bibliothèque/i })
-    .first()
-    .click();
+  // La navigation doit survivre à une connexion par formulaire : le cache local
+  // est purgé à cet instant précis, et l'observateur de session ne doit pas se
+  // perdre au passage — sans quoi l'écran se retrouve sans aucune navigation.
+  const nav = page.getByRole('navigation', { name: /navigation principale/i });
+  await expect(nav.getByRole('link', { name: /bibliothèque/i })).toBeVisible();
+
+  await nav.getByRole('link', { name: /bibliothèque/i }).click();
   await expect(page.getByText(/ta bibliothèque est vide/i)).toBeVisible();
 });
 

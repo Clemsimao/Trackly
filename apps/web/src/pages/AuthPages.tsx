@@ -31,7 +31,7 @@ export function LoginPage() {
     <AuthCard title={fr.auth.loginTitle}>
       <LoginForm
         onSuccess={async (user) => {
-          await purgerCacheLocal(queryClient);
+          await purgerCacheLocal(queryClient, { conserverSession: true });
           queryClient.setQueryData(meQueryOptions.queryKey, user);
           await navigate({ to: search.redirect ?? '/accueil' });
         }}
@@ -62,7 +62,7 @@ export function RegisterPage() {
     <AuthCard title={fr.auth.registerTitle}>
       <RegisterForm
         onSuccess={async (user) => {
-          await purgerCacheLocal(queryClient);
+          await purgerCacheLocal(queryClient, { conserverSession: true });
           queryClient.setQueryData(meQueryOptions.queryKey, user);
           await navigate({ to: '/accueil' });
         }}

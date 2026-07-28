@@ -36,9 +36,26 @@ export const persister = createSyncStoragePersister({
  */
 export const buster = __BUILD_ID__;
 
-/** Déconnexion ou session expirée : plus rien ne doit rester sur l'appareil. */
-export async function purgerCacheLocal(queryClient: QueryClient): Promise<void> {
-  queryClient.clear();
+/**
+ * Déconnexion ou session expirée : plus rien ne doit rester sur l'appareil.
+ *
+ * `conserverSession` sert au cas inverse — une CONNEXION, où l'on veut effacer
+ * les données de l'occupant précédent tout en installant la nouvelle session.
+ * `clear()` détruit la query ['auth','me'] : l'observateur déjà monté dans la
+ * mise en page racine reste accroché à la query détruite, et le `setQueryData`
+ * qui suit en crée une autre qu'il ne voit jamais. Résultat, `user` restait
+ * indéfini et toute la navigation disparaissait jusqu'au rechargement. On
+ * épargne donc l'entrée d'authentification, que l'appelant met à jour ensuite.
+ */
+export async function purgerCacheLocal(
+  queryClient: QueryClient,
+  { conserverSession = false }: { conserverSession?: boolean } = {},
+): Promise<void> {
+  if (conserverSession) {
+    queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'auth' });
+  } else {
+    queryClient.clear();
+  }
   await persister.removeClient();
   // Les jaquettes peuvent révéler les titres consultés par l'utilisateur
   // précédent sur un appareil partagé.

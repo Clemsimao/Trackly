@@ -325,7 +325,8 @@ export const fr = {
     home: {
       inProgress: 'En ce moment',
       resumeHint: 'Reprendre :',
-      empty: 'Rien en cours — pioche dans ta bibliothèque !',
+      emptyTitle: 'Rien en cours',
+      empty: 'Reprends un titre déjà commencé, ou ajoute-en un nouveau.',
       seeLibrary: 'Voir toute la bibliothèque →',
       // Le héros de l'accueil : l'œuvre la plus proche d'être finie.
       heroEyebrow: 'À reprendre',
