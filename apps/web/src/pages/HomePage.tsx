@@ -5,9 +5,19 @@ import { logout, meQueryOptions } from '../api/auth';
 import { purgerCacheLocal } from '../api/persist';
 import { getDashboard } from '../api/dashboard';
 import { ApiStatus } from '../components/ApiStatus';
+import { Icon, MEDIA_ICON } from '../components/Icon';
+import { Poster } from '../components/Poster';
 import { fr } from '../i18n/fr';
 import { formatHoursFromSeconds } from '../utils/format';
 import { useDocumentTitle } from '../utils/useDocumentTitle';
+import { useDominantColor } from '../utils/useDominantColor';
+
+const ITEM_PATH: Record<MediaType, string> = {
+  game: '/bibliotheque/jeu/$entryId',
+  series: '/bibliotheque/serie/$entryId',
+  film: '/bibliotheque/film/$entryId',
+  book: '/bibliotheque/livre/$entryId',
+};
 
 export function HomePage() {
   useDocumentTitle(fr.nav.home);
@@ -36,13 +46,13 @@ export function HomePage() {
         to="/recherche"
         className="mt-5 flex max-w-xl items-center gap-2.5 rounded-xl border border-(--border) bg-(--surface) px-4 py-2.5 text-sm text-(--text-muted) transition hover:border-primary hover:text-(--text) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
-        <span aria-hidden>🔍</span>
+        <Icon name="search" className="h-4 w-4" />
         {fr.home.searchCta}
       </Link>
 
       <DashboardOverview />
 
-      <div className="mt-7 flex flex-wrap items-center gap-2.5 border-t border-(--border) pt-5">
+      <div className="mt-8 flex flex-wrap items-center gap-2.5 border-t border-(--border) pt-5">
         <Link
           to="/compte"
           className="rounded-lg border border-(--border) px-3.5 py-2 text-sm hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
@@ -66,200 +76,266 @@ export function HomePage() {
 }
 
 /**
- * L'activité courante est l'information principale. Le budget reste visible,
- * mais dans une colonne secondaire compacte sur les écrans larges.
+ * L'activité courante est l'information principale : la première entrée en
+ * cours prend tout le bandeau, les suivantes s'alignent sur l'étagère en
+ * dessous. Le budget temps ferme la page — visible, mais subordonné.
  */
 function DashboardOverview() {
   const { data } = useQuery({ queryKey: ['dashboard'], queryFn: getDashboard });
   if (!data) return null;
 
-  const totalCount =
-    data.games.inProgress.count +
-    data.games.backlog.count +
-    data.games.wishlist.count +
-    data.series.inProgress.count +
-    data.series.toWatch.count +
-    data.films.toWatch.count +
-    data.books.inProgress.count +
-    data.books.toRead.count;
+  const [hero, ...reste] = data.inProgress;
 
   return (
-    <div className="mt-8 grid items-start gap-5 md:grid-cols-[minmax(0,1.55fr)_minmax(15rem,0.85fr)] md:gap-6">
-      <section aria-labelledby="in-progress-heading">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 id="in-progress-heading" className="font-display text-xl font-semibold">
-            {fr.library.home.inProgress}
-          </h2>
-          <SeeLibraryLink compact />
+    <div className="mt-8">
+      {hero ? (
+        <ResumeHero item={hero} />
+      ) : (
+        <div className="rounded-xl border border-dashed border-(--border) px-4 py-6">
+          <p className="text-sm text-(--text-muted)">{fr.library.home.empty}</p>
         </div>
+      )}
 
-        {data.inProgress.length > 0 ? (
-          <ul className="mt-3 space-y-2.5">
-            {data.inProgress.map((item) => (
-              <InProgressRow key={`${item.mediaType}-${item.entryId}`} item={item} />
-            ))}
-          </ul>
-        ) : (
-          <div className="mt-3 rounded-xl border border-dashed border-(--border) px-4 py-5">
-            <p className="text-sm text-(--text-muted)">{fr.library.home.empty}</p>
-          </div>
-        )}
-      </section>
+      {reste.length > 0 ? <Shelf items={reste} /> : null}
 
-      <BudgetCard data={data} totalCount={totalCount} />
+      <BudgetStrip data={data} />
     </div>
   );
 }
 
-function BudgetCard({ data, totalCount }: { data: DashboardResponse; totalCount: number }) {
+/** Le bandeau « à reprendre » — teinté par la couleur dominante de l'affiche. */
+function ResumeHero({ item }: { item: DashboardItem }) {
+  const tint = useDominantColor(item.posterUrl);
+
+  return (
+    <section aria-labelledby="resume-heading">
+      <Link
+        to={ITEM_PATH[item.mediaType]}
+        params={{ entryId: item.entryId }}
+        style={tint ? ({ '--tint': tint } as React.CSSProperties) : undefined}
+        className="tinted group block overflow-hidden rounded-xl border border-(--border) p-5 transition hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:p-7"
+      >
+        <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-5 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-8">
+          <Poster
+            url={item.posterUrl}
+            title={item.title}
+            className="aspect-[2/3] shadow-lg"
+            sizes="(min-width: 640px) 11rem, 6.5rem"
+          />
+          <div className="min-w-0">
+            <p className="eyebrow text-(--text-muted)">{fr.library.home.heroEyebrow}</p>
+            <h2
+              id="resume-heading"
+              className="mt-1 font-display text-2xl leading-tight font-semibold sm:text-4xl"
+            >
+              {item.title}
+            </h2>
+
+            <p className="mt-2 flex items-center gap-1.5 text-sm text-(--text-muted)">
+              <Icon name={MEDIA_ICON[item.mediaType]} className="h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {fr.media.typeLabel[item.mediaType]}
+                {item.subtitle ? ` · ${item.subtitle}` : ''}
+              </span>
+            </p>
+
+            <p className="mt-4 flex items-baseline gap-2">
+              {item.remainingSeconds != null ? (
+                <>
+                  <span className="display-figure text-2xl sm:text-3xl">
+                    {formatHoursFromSeconds(item.remainingSeconds)}
+                  </span>
+                  <span className="text-sm text-(--text-muted)">
+                    {fr.library.home.heroRemaining}
+                  </span>
+                </>
+              ) : (
+                <span className="text-sm text-(--text-muted)">
+                  {fr.library.home.heroRemainingUnknown}
+                </span>
+              )}
+            </p>
+
+            <span className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition group-hover:bg-primary-strong">
+              <Icon name="play" className="h-4 w-4" />
+              {fr.library.home.heroResume}
+            </span>
+          </div>
+        </div>
+      </Link>
+    </section>
+  );
+}
+
+/**
+ * L'étagère : les autres œuvres commencées, posées côte à côte. Elle défile
+ * horizontalement plutôt que de s'empiler — une rangée d'affiches se parcourt
+ * du regard, une liste verticale se lit ligne à ligne.
+ */
+function Shelf({ items }: { items: DashboardItem[] }) {
+  return (
+    <section aria-labelledby="shelf-heading" className="mt-8">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 id="shelf-heading" className="font-display text-lg font-semibold">
+          {fr.library.home.alsoInProgress}
+        </h2>
+        <Link
+          to="/bibliotheque"
+          className="shrink-0 text-xs font-semibold text-link hover:underline"
+        >
+          {fr.library.home.seeLibrary}
+        </Link>
+      </div>
+
+      <ul className="mt-3 grid grid-flow-col justify-start gap-4 overflow-x-auto border-b border-(--border) pb-4 [grid-auto-columns:7rem] sm:[grid-auto-columns:8rem]">
+        {items.map((item) => (
+          <li key={`${item.mediaType}-${item.entryId}`}>
+            <Link
+              to={ITEM_PATH[item.mediaType]}
+              params={{ entryId: item.entryId }}
+              className="group block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              <Poster
+                url={item.posterUrl}
+                title={item.title}
+                className="aspect-[2/3] transition group-hover:-translate-y-0.5"
+                sizes="8rem"
+              />
+              <p className="mt-2 line-clamp-2 min-h-[2.05rem] text-sm leading-snug font-semibold">
+                {item.title}
+              </p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-(--text-muted)">
+                <Icon name={MEDIA_ICON[item.mediaType]} className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">
+                  {item.remainingSeconds != null
+                    ? formatHoursFromSeconds(item.remainingSeconds)
+                    : fr.media.ttbUnknown}
+                </span>
+              </p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+interface MediaLine {
+  type: MediaType;
+  label: string;
+  seconds: number;
+  ramp: string;
+}
+
+/**
+ * Le budget temps — le chiffre propre à Trackly.
+ *
+ * Les quatre segments sont des CATÉGORIES, pas des états : ils sont donc peints
+ * sur une rampe de gris et non avec les couleurs de statut. C'est l'icône qui
+ * identifie le média.
+ */
+function BudgetStrip({ data }: { data: DashboardResponse }) {
   const lines = mediaLines(data);
+  const totalLines = lines.reduce((sum, line) => sum + line.seconds, 0);
 
   return (
     <section
       aria-labelledby="budget-heading"
-      className="rounded-xl border border-(--border) bg-(--surface) p-4 sm:p-5"
+      className="mt-8 rounded-xl border border-(--border) bg-(--surface-raised) p-5 sm:px-7 sm:py-6"
     >
-      <h2 id="budget-heading" className="font-display text-base font-semibold">
-        {fr.library.budget.title}
-      </h2>
-
-      {totalCount === 0 ? (
-        <p className="mt-2 text-sm leading-relaxed text-(--text-muted)">
-          {fr.library.budget.empty}
-        </p>
+      {totalLines === 0 ? (
+        <>
+          <h2 id="budget-heading" className="font-display text-base font-semibold">
+            {fr.library.budget.title}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-(--text-muted)">
+            {fr.library.budget.empty}
+          </p>
+        </>
       ) : (
         <>
-          <div className="mt-3 flex items-end justify-between gap-3">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="eyebrow text-(--text-muted)">{fr.library.budget.totalPrefix}</p>
-              <p className="display-figure mt-1 text-3xl leading-none sm:text-4xl">
+              <p className="eyebrow text-(--text-muted)" id="budget-heading">
+                {fr.library.budget.totalPrefix}
+              </p>
+              <p className="display-figure mt-1 text-4xl leading-none sm:text-5xl">
                 {formatHoursFromSeconds(data.totalSeconds)}
               </p>
             </div>
+            {data.totalEstimated ? (
+              <p className="max-w-xs text-xs leading-relaxed text-(--text-muted)">
+                {fr.library.budget.estimatedNote}
+              </p>
+            ) : null}
           </div>
 
-          <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-(--border) pt-4">
-            {lines.map((line) => (
-              <div key={line.label} className="min-w-0">
-                <dt className="truncate text-xs text-(--text-muted)">
-                  <span aria-hidden className="mr-1.5">
-                    {line.icon}
-                  </span>
-                  {line.label}
-                </dt>
-                <dd className="tabular mt-0.5 text-sm font-semibold text-(--text)">
-                  {line.seconds > 0 ? formatHoursFromSeconds(line.seconds) : '—'}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <div
+            className="mt-5 flex h-2.5 gap-0.5 overflow-hidden rounded-full"
+            role="img"
+            aria-label={lines
+              .filter((line) => line.seconds > 0)
+              .map((line) => `${line.label} ${formatHoursFromSeconds(line.seconds)}`)
+              .join(', ')}
+          >
+            {lines
+              .filter((line) => line.seconds > 0)
+              .map((line) => (
+                <span
+                  key={line.type}
+                  className={line.ramp}
+                  style={{ width: `${(line.seconds / totalLines) * 100}%` }}
+                />
+              ))}
+          </div>
 
-          {data.totalEstimated ? (
-            <p className="mt-4 border-t border-(--border) pt-3 text-[0.7rem] leading-relaxed text-(--text-muted)">
-              {fr.library.budget.estimatedNote}
-            </p>
-          ) : null}
+          <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            {lines.map((line) => (
+              <li key={line.type} className="flex items-center gap-2">
+                <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${line.ramp}`} />
+                <Icon
+                  name={MEDIA_ICON[line.type]}
+                  className="h-4 w-4 shrink-0 text-(--text-muted)"
+                />
+                <span className="text-(--text-muted)">{line.label}</span>
+                <span className="tabular font-semibold">
+                  {line.seconds > 0 ? formatHoursFromSeconds(line.seconds) : '—'}
+                </span>
+              </li>
+            ))}
+          </ul>
         </>
       )}
     </section>
   );
 }
 
-function SeeLibraryLink({ compact = false }: { compact?: boolean }) {
-  return (
-    <Link
-      to="/bibliotheque"
-      className={
-        compact
-          ? 'shrink-0 text-xs font-semibold text-link hover:underline'
-          : 'mt-4 inline-block text-sm font-semibold text-link hover:underline'
-      }
-    >
-      {fr.library.home.seeLibrary}
-    </Link>
-  );
-}
-
-interface MediaLine {
-  icon: string;
-  label: string;
-  seconds: number;
-}
-
 function mediaLines(data: DashboardResponse): MediaLine[] {
   const { games, series, films, books } = data;
   return [
     {
-      icon: '🎮',
+      type: 'game',
       label: fr.library.budget.games,
       seconds: games.inProgress.seconds + games.backlog.seconds,
+      ramp: 'bg-(--ramp-1)',
     },
     {
-      icon: '📺',
+      type: 'series',
       label: fr.library.budget.series,
       seconds: series.inProgress.seconds + series.toWatch.seconds,
+      ramp: 'bg-(--ramp-2)',
     },
     {
-      icon: '🎬',
+      type: 'film',
       label: fr.library.budget.films,
       seconds: films.toWatch.seconds,
+      ramp: 'bg-(--ramp-3)',
     },
     {
-      icon: '📖',
+      type: 'book',
       label: fr.library.budget.books,
       seconds: books.inProgress.seconds + books.toRead.seconds,
+      ramp: 'bg-(--ramp-4)',
     },
   ];
-}
-
-const ITEM_PATH: Record<MediaType, string> = {
-  game: '/bibliotheque/jeu/$entryId',
-  series: '/bibliotheque/serie/$entryId',
-  film: '/bibliotheque/film/$entryId',
-  book: '/bibliotheque/livre/$entryId',
-};
-
-const ITEM_ICON: Record<MediaType, string> = {
-  game: '🎮',
-  series: '📺',
-  film: '🎬',
-  book: '📖',
-};
-
-function InProgressRow({ item }: { item: DashboardItem }) {
-  const mediaType = item.mediaType;
-
-  return (
-    <li>
-      <Link
-        to={ITEM_PATH[mediaType]}
-        params={{ entryId: item.entryId }}
-        className="group flex items-center gap-3.5 rounded-xl border border-(--border) bg-(--surface) p-3 transition hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
-      >
-        <div className="h-20 w-14 shrink-0 overflow-hidden rounded-lg bg-(--border)/50">
-          {item.posterUrl ? (
-            <img
-              src={item.posterUrl}
-              alt=""
-              loading="lazy"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-lg" aria-hidden>
-              {ITEM_ICON[mediaType]}
-            </div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display font-medium sm:text-[1.05rem]">{item.title}</p>
-          {item.subtitle ? (
-            <p className="truncate text-sm text-(--text-muted)">{item.subtitle}</p>
-          ) : null}
-        </div>
-        <span className="tabular shrink-0 rounded-full bg-primary/12 px-2.5 py-1 text-sm font-medium text-link">
-          {item.remainingSeconds != null ? formatHoursFromSeconds(item.remainingSeconds) : '?'}
-        </span>
-      </Link>
-    </li>
-  );
 }

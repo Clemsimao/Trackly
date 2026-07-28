@@ -10,11 +10,15 @@ import type {
   MediaType,
 } from '@trackly/contracts';
 import { getLibrary } from '../api/library';
+import { Icon, MEDIA_ICON, type IconName } from '../components/Icon';
+import { Poster } from '../components/Poster';
+import { Select } from '../components/Select';
 import { fr } from '../i18n/fr';
 import { formatMinutes } from '../utils/format';
 import { useDocumentTitle } from '../utils/useDocumentTitle';
 
 type TypeFilter = MediaType | 'all';
+type SortKey = 'recent' | 'title';
 
 const TYPE_FILTERS: Array<{ value: TypeFilter; label: string }> = [
   { value: 'all', label: fr.library.filters.all },
@@ -156,18 +160,25 @@ function canonGenre(raw: string): string {
   return GENRE_CANON[raw.toLowerCase()] ?? raw;
 }
 
-const STATUS_BADGE: Record<string, string> = {
-  PLAYING: 'bg-progress/15 text-progress',
-  WATCHING: 'bg-progress/15 text-progress',
-  READING: 'bg-progress/15 text-progress',
-  FINISHED: 'bg-done/15 text-done',
-  COMPLETED: 'bg-done/15 text-done',
-  SEEN: 'bg-done/15 text-done',
-  DROPPED: 'bg-dropped/15 text-dropped',
-  DISLIKED: 'bg-dropped/15 text-dropped',
-  REJECTED: 'bg-dropped/15 text-dropped',
-  PAUSED: 'bg-paused/15 text-paused',
+/**
+ * La couleur code le STATUT — et seulement lui. Les états « pas encore
+ * commencé » (envie, backlog, à voir, à lire) restent volontairement neutres :
+ * un gris n'est pas une absence de repère, c'est le repère juste.
+ */
+const STATUS_COLOR: Record<string, string> = {
+  PLAYING: 'bg-progress',
+  WATCHING: 'bg-progress',
+  READING: 'bg-progress',
+  FINISHED: 'bg-done',
+  COMPLETED: 'bg-done',
+  SEEN: 'bg-done',
+  DROPPED: 'bg-dropped',
+  DISLIKED: 'bg-dropped',
+  REJECTED: 'bg-dropped',
+  PAUSED: 'bg-paused',
 };
+
+const NEUTRAL_STATUS = 'bg-(--ramp-3)';
 
 export function LibraryPage() {
   useDocumentTitle(fr.library.title);
@@ -177,189 +188,248 @@ export function LibraryPage() {
   const [genre, setGenre] = useState('');
   const [platform, setPlatform] = useState('');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [sort, setSort] = useState<SortKey>('recent');
 
   const rows = useMemo(() => (data ? toRows(data) : []), [data]);
 
-  const filtered = rows.filter(
-    (row) =>
-      (type === 'all' || row.mediaType === type) &&
-      (!status || row.status === status) &&
-      (!genre || row.genres.some((g) => canonGenre(g) === genre)) &&
-      (!platform || row.platforms.includes(platform)) &&
-      (!favoritesOnly || row.favorite),
-  );
+  const filtered = rows
+    .filter(
+      (row) =>
+        (type === 'all' || row.mediaType === type) &&
+        (!status || row.status === status) &&
+        (!genre || row.genres.some((g) => canonGenre(g) === genre)) &&
+        (!platform || row.platforms.includes(platform)) &&
+        (!favoritesOnly || row.favorite),
+    )
+    .sort((a, b) =>
+      sort === 'title'
+        ? a.title.localeCompare(b.title, 'fr', { sensitivity: 'base' })
+        : b.updatedAt.localeCompare(a.updatedAt),
+    );
 
   const typedRows = type === 'all' ? rows : rows.filter((row) => row.mediaType === type);
   const genres = [...new Set(typedRows.flatMap((row) => row.genres.map(canonGenre)))].sort();
   const platforms = [...new Set(rows.flatMap((row) => row.platforms))].sort();
 
+  // Un compteur par onglet : on sait ce qu'on va filtrer avant de cliquer.
+  const countFor = (value: TypeFilter) =>
+    value === 'all' ? rows.length : rows.filter((row) => row.mediaType === value).length;
+
+  const resetFilters = () => {
+    setType('all');
+    setStatus('');
+    setGenre('');
+    setPlatform('');
+    setFavoritesOnly(false);
+  };
+
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-6">
+    <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-6 sm:px-6">
       <h1 className="mb-4 font-display text-2xl font-semibold">{fr.library.title}</h1>
 
       <div role="group" aria-label="Filtrer par type" className="flex flex-wrap gap-2">
         {TYPE_FILTERS.map((filter) => (
-          <button
+          <FilterPill
             key={filter.value}
-            type="button"
+            active={type === filter.value}
             onClick={() => {
               setType(filter.value);
               setStatus('');
               setGenre('');
             }}
-            aria-pressed={type === filter.value}
-            className={`rounded-full border px-3 py-1.5 text-sm transition focus-visible:outline-2 focus-visible:outline-primary ${
-              type === filter.value
-                ? 'border-primary bg-primary text-white'
-                : 'border-(--border) bg-(--surface) hover:border-primary'
-            }`}
+            icon={filter.value === 'all' ? undefined : MEDIA_ICON[filter.value]}
+            count={countFor(filter.value)}
           >
             {filter.label}
-          </button>
+          </FilterPill>
         ))}
-        <button
-          type="button"
+        <FilterPill
+          active={favoritesOnly}
           onClick={() => setFavoritesOnly((v) => !v)}
-          aria-pressed={favoritesOnly}
-          className={`rounded-full border px-3 py-1.5 text-sm transition focus-visible:outline-2 focus-visible:outline-primary ${
-            favoritesOnly
-              ? 'border-primary bg-primary text-white'
-              : 'border-(--border) bg-(--surface) hover:border-primary'
-          }`}
+          icon="star"
+          count={rows.filter((row) => row.favorite).length}
         >
           {fr.library.filters.favorites}
-        </button>
+        </FilterPill>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         {type !== 'all' ? (
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-            aria-label={fr.media.status}
-            className="rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-sm"
-          >
+          <Select value={status} onChange={setStatus} label={fr.media.status}>
             <option value="">{fr.library.filters.anyStatus}</option>
             {Object.entries(STATUS_OPTIONS[type]).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         ) : null}
         {genres.length > 0 ? (
-          <select
-            value={genre}
-            onChange={(event) => setGenre(event.target.value)}
-            aria-label={fr.media.genres}
-            className="rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-sm"
-          >
+          <Select value={genre} onChange={setGenre} label={fr.media.genres}>
             <option value="">{fr.library.filters.anyGenre}</option>
             {genres.map((name) => (
               <option key={name} value={name}>
                 {name}
               </option>
             ))}
-          </select>
+          </Select>
         ) : null}
         {(type === 'all' || type === 'game') && platforms.length > 0 ? (
-          <select
-            value={platform}
-            onChange={(event) => setPlatform(event.target.value)}
-            aria-label={fr.media.platforms}
-            className="rounded-lg border border-(--border) bg-(--surface) px-3 py-1.5 text-sm"
-          >
+          <Select value={platform} onChange={setPlatform} label={fr.media.platforms}>
             <option value="">{fr.library.filters.anyPlatform}</option>
             {platforms.map((name) => (
               <option key={name} value={name}>
                 {name}
               </option>
             ))}
-          </select>
+          </Select>
+        ) : null}
+        <Select
+          value={sort}
+          onChange={(value) => setSort(value as SortKey)}
+          label={fr.library.filters.sort}
+        >
+          <option value="recent">{fr.library.filters.sortRecent}</option>
+          <option value="title">{fr.library.filters.sortTitle}</option>
+        </Select>
+
+        {rows.length > 0 ? (
+          <span className="tabular ml-auto text-sm text-(--text-muted)">
+            {filtered.length}{' '}
+            {filtered.length > 1 ? fr.library.counts.works : fr.library.counts.work}
+          </span>
         ) : null}
       </div>
 
       <div className="mt-6" aria-live="polite">
         {isPending ? (
-          <div className="space-y-3">
-            {Array.from({ length: 4 }, (_, i) => (
-              <div key={i} className="h-24 animate-pulse rounded-xl bg-(--border)/50" aria-hidden />
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-x-4 gap-y-6">
+            {Array.from({ length: 12 }, (_, i) => (
+              <li key={i} aria-hidden>
+                <div className="aspect-[2/3] animate-pulse rounded-lg bg-(--border)/50" />
+                <div className="mt-2 h-3 animate-pulse rounded bg-(--border)/50" />
+              </li>
             ))}
-          </div>
+          </ul>
         ) : isError ? (
           <p role="alert" className="text-dropped">
             {fr.library.error}
           </p>
         ) : rows.length === 0 ? (
-          <p className="text-(--text-muted)">
-            {fr.library.empty}{' '}
-            <Link to="/recherche" className="font-semibold text-link hover:underline">
-              {fr.nav.search} →
-            </Link>
-          </p>
+          <EmptyLibrary />
         ) : filtered.length === 0 ? (
-          <p className="text-(--text-muted)">{fr.library.emptyFiltered}</p>
+          <div className="rounded-xl border border-dashed border-(--border) px-4 py-8 text-center">
+            <p className="text-(--text-muted)">{fr.library.emptyFiltered}</p>
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="mt-3 rounded-lg border border-(--border) px-3.5 py-2 text-sm font-medium transition hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              {fr.library.emptyFilteredCta}
+            </button>
+          </div>
         ) : (
-          <ul className="space-y-3">
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-x-4 gap-y-6">
             {filtered.map((row) => (
-              <li key={row.key}>
-                <Link
-                  to={DETAIL_PATH[row.mediaType]}
-                  params={{ entryId: row.entryId }}
-                  className="flex gap-4 rounded-xl border border-(--border) bg-(--surface) p-3 transition hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
-                >
-                  <div className="h-24 w-16 shrink-0 overflow-hidden rounded-lg bg-(--border)/40">
-                    {row.posterUrl ? (
-                      <img
-                        src={row.posterUrl}
-                        alt=""
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-2xl" aria-hidden>
-                        🎲
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[row.status] ?? 'bg-primary/15 text-link'}`}
-                      >
-                        {row.statusLabel}
-                      </span>
-                      <span className="text-xs text-(--text-muted)">
-                        {fr.media.typeLabel[row.mediaType]}
-                      </span>
-                      {row.favorite ? (
-                        <span aria-label={fr.library.opinion.favorite}>⭐</span>
-                      ) : null}
-                    </div>
-                    <p className="mt-1 truncate font-semibold">
-                      {row.title}
-                      {row.year ? (
-                        <span className="ml-2 text-sm font-normal text-(--text-muted)">
-                          {row.year}
-                        </span>
-                      ) : null}
-                    </p>
-                    <p className="mt-0.5 text-sm text-(--text-muted)">
-                      {[
-                        row.progress,
-                        row.platforms.join(', ') || null,
-                        row.rating ? `★ ${row.rating}/10` : null,
-                      ]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </p>
-                  </div>
-                </Link>
-              </li>
+              <LibraryCard key={row.key} row={row} />
             ))}
           </ul>
         )}
       </div>
     </main>
+  );
+}
+
+function FilterPill({
+  active,
+  onClick,
+  icon,
+  count,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon?: IconName;
+  count: number;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+        active
+          ? 'border-primary bg-primary font-semibold text-white'
+          : 'border-(--border) bg-(--surface) hover:border-primary'
+      }`}
+    >
+      {icon ? (
+        <Icon name={icon} className={`h-3.5 w-3.5 ${active ? '' : 'text-(--text-muted)'}`} />
+      ) : null}
+      {children}
+      <span className={`tabular text-xs ${active ? 'text-white/75' : 'text-(--text-muted)'}`}>
+        {count}
+      </span>
+    </button>
+  );
+}
+
+function LibraryCard({ row }: { row: Row }) {
+  const statusClass = STATUS_COLOR[row.status] ?? NEUTRAL_STATUS;
+  const details = [
+    row.progress,
+    row.platforms.join(', ') || null,
+    row.rating ? `${row.rating}/10` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  return (
+    <li>
+      <Link
+        to={DETAIL_PATH[row.mediaType]}
+        params={{ entryId: row.entryId }}
+        className="group block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        <Poster
+          url={row.posterUrl}
+          title={row.title}
+          statusClass={statusClass}
+          className="aspect-[2/3] transition group-hover:-translate-y-0.5"
+          sizes="8rem"
+        />
+        <p className="mt-2 line-clamp-2 min-h-[2.15rem] text-sm leading-snug font-semibold">
+          {row.title}
+        </p>
+        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-(--text-muted)">
+          <span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusClass}`} />
+          <span className="truncate">{row.statusLabel}</span>
+          {row.favorite ? <Icon name="star" className="h-3 w-3 shrink-0 text-paused" /> : null}
+          <Icon name={MEDIA_ICON[row.mediaType]} className="ml-auto h-3.5 w-3.5 shrink-0" />
+        </p>
+        {details ? <p className="truncate text-xs text-(--text-muted)">{details}</p> : null}
+      </Link>
+    </li>
+  );
+}
+
+/** Écran vide : un titre, ce que ça apporte, et l'action. Pas un constat. */
+function EmptyLibrary() {
+  return (
+    <div className="rounded-xl border border-dashed border-(--border) px-6 py-10 text-center">
+      <Icon name="library" className="mx-auto h-8 w-8 text-(--text-muted)" />
+      <h2 className="mt-3 font-display text-lg font-semibold">{fr.library.emptyTitle}</h2>
+      <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-(--text-muted)">
+        {fr.library.emptyHint}
+      </p>
+      <Link
+        to="/recherche"
+        className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        <Icon name="search" className="h-4 w-4" />
+        {fr.library.emptyCta}
+      </Link>
+    </div>
   );
 }

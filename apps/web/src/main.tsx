@@ -6,7 +6,9 @@ import { RouterProvider } from '@tanstack/react-router';
 import { UNAUTHORIZED_EVENT } from './api/client';
 import { buster, DUREE_MAX_MS, persister, purgerCacheLocal } from './api/persist';
 import { createAppRouter } from './router';
-// Police auto-hébergée (0 €, hors ligne, sans CDN tiers) — direction « Minimal & net »
+// Polices auto-hébergées (0 €, hors ligne, sans CDN tiers) — direction « Étagère » :
+// une grotesque pour les titres, Inter pour le corps et les données.
+import '@fontsource-variable/bricolage-grotesque';
 import '@fontsource-variable/inter';
 import './styles.css';
 

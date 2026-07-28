@@ -11,6 +11,7 @@ import {
 import type { MediaType, PublicUser } from '@trackly/contracts';
 import { meQueryOptions } from './api/auth';
 import { purgerCacheLocal } from './api/persist';
+import { Icon, type IconName } from './components/Icon';
 import { OfflineBanner } from './components/OfflineBanner';
 import { fr } from './i18n/fr';
 import { AccountPage } from './pages/AccountPage';
@@ -71,9 +72,10 @@ function RootLayout() {
           type="button"
           onClick={() => setDark(toggleTheme())}
           aria-label={dark ? fr.theme.toLight : fr.theme.toDark}
-          className="shrink-0 rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-sm hover:border-primary focus-visible:outline-2 focus-visible:outline-primary"
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-(--border) bg-(--surface) px-3 py-2 text-sm transition hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
-          {dark ? fr.theme.light : fr.theme.dark}
+          <Icon name={dark ? 'sun' : 'moon'} className="h-4 w-4 text-(--text-muted)" />
+          <span className="hidden sm:inline">{dark ? fr.theme.light : fr.theme.dark}</span>
         </button>
       </header>
       <Outlet />
@@ -92,11 +94,9 @@ function RootLayout() {
             <Link
               key={item.to}
               to={item.to}
-              className="flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs text-(--text-muted) [&.active]:text-link"
+              className="flex flex-1 flex-col items-center gap-1 py-2.5 text-xs text-(--text-muted) [&.active]:text-link"
             >
-              <span aria-hidden className="text-lg leading-none">
-                {item.icon}
-              </span>
+              <Icon name={item.icon} className="h-5 w-5" />
               {item.label}
             </Link>
           ))}
@@ -107,10 +107,10 @@ function RootLayout() {
 }
 
 const NAV_ITEMS = [
-  { to: '/accueil', label: fr.nav.home, icon: '🏠' },
-  { to: '/bibliotheque', label: fr.nav.library, icon: '📚' },
-  { to: '/recherche', label: fr.nav.search, icon: '🔍' },
-] as const;
+  { to: '/accueil', label: fr.nav.home, icon: 'home' },
+  { to: '/bibliotheque', label: fr.nav.library, icon: 'library' },
+  { to: '/recherche', label: fr.nav.search, icon: 'search' },
+] as const satisfies ReadonlyArray<{ to: string; label: string; icon: IconName }>;
 
 const rootRoute = createRootRouteWithContext<RouterContext>()({ component: RootLayout });
 

@@ -3,13 +3,23 @@
 /* Mode sombre piloté par la classe .dark sur <html> (persisté, cf. index.html) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ══ Système de design Trackly — direction « Minimal & net » ═══════════════════
-   Épuré chirurgical (esprit Apple / Vercel) : une seule famille sans-serif,
-   contraste franc, gris neutres, UN accent bleu utilisé avec parcimonie,
-   beaucoup d'espace. Les chiffres restent nets et tabulaires ; zéro fioriture.
+/* ══ Système de design Trackly — direction « Étagère » ════════════════════════
+   La jaquette est la matière première : c'est elle qui porte la couleur, et le
+   châssis reste neutre pour ne pas lui faire concurrence. Gris « papier »
+   (teinte chaude à chroma quasi nul), UN accent bleu réservé à l'interactif.
+
+   GRAMMAIRE — à ne pas enfreindre :
+     • la COULEUR code le STATUT (en cours, vu, en pause, abandonné) ;
+     • l'ICÔNE code le TYPE de média (jeu, série, film, livre).
+   Jamais l'inverse, jamais les deux à la fois : sans cette règle, le même vert
+   voulait dire « Vu » dans la bibliothèque et « Série » dans la recherche.
    ────────────────────────────────────────────────────────────────────────── */
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Display : grotesque variable, réservée aux titres et au chiffre-héros.
+     Inter seule ne portait aucune personnalité ; deux voix suffisent. */
+  --font-display:
+    'Bricolage Grotesque Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
 
   /* Un seul accent : bleu net, réservé à l'interactif et aux repères clés.
      Deux rôles distincts, car aucune teinte unique ne passe AA dans les deux modes :
@@ -30,14 +40,28 @@
   --color-dropped: oklch(0.52 0.19 25);
 }
 
-/* Surfaces neutres (gris froid quasi sans teinte), consommées via bg-(--surface)… */
+/* Surfaces neutres, consommées via bg-(--surface)…
+   Teinte 80 à chroma quasi nul : un gris « papier » tiède plutôt que froid.
+   Les affiches y respirent mieux qu'au-dessus d'un gris bleuté. */
 :root {
-  --bg: oklch(0.99 0 0);
+  --bg: oklch(0.985 0.003 80);
   --surface: oklch(1 0 0);
-  --surface-raised: oklch(0.985 0.002 250);
-  --border: oklch(0.92 0.003 250);
-  --text: oklch(0.2 0.005 250);
-  --text-muted: oklch(0.48 0.006 250);
+  --surface-raised: oklch(0.975 0.004 80);
+  --border: oklch(0.905 0.005 80);
+  --text: oklch(0.19 0.01 60);
+  --text-muted: oklch(0.48 0.008 70);
+}
+
+/* Rampe neutre — sert à distinguer des CATÉGORIES (les quatre médias dans la
+   répartition du budget) sans emprunter aux couleurs de statut. C'est l'icône
+   qui identifie ; la valeur de gris ne fait que séparer les segments.
+   Pas de variante sombre à déclarer : var(--text) est substitué à l'usage,
+   donc la rampe suit automatiquement le thème de l'élément. */
+:root {
+  --ramp-1: color-mix(in oklab, var(--text) 82%, transparent);
+  --ramp-2: color-mix(in oklab, var(--text) 58%, transparent);
+  --ramp-3: color-mix(in oklab, var(--text) 36%, transparent);
+  --ramp-4: color-mix(in oklab, var(--text) 20%, transparent);
 }
 
 .dark {
@@ -48,12 +72,12 @@
   --color-paused: oklch(0.72 0.08 80);
   --color-dropped: oklch(0.68 0.19 25);
 
-  --bg: oklch(0.15 0.004 250);
-  --surface: oklch(0.19 0.004 250);
-  --surface-raised: oklch(0.225 0.005 250);
-  --border: oklch(0.28 0.006 250);
-  --text: oklch(0.97 0.002 250);
-  --text-muted: oklch(0.66 0.006 250);
+  --bg: oklch(0.145 0.005 70);
+  --surface: oklch(0.185 0.005 70);
+  --surface-raised: oklch(0.22 0.006 70);
+  --border: oklch(0.28 0.007 70);
+  --text: oklch(0.965 0.003 80);
+  --text-muted: oklch(0.66 0.007 70);
 }
 
 body {
@@ -64,20 +88,56 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* ── Utilitaires (une seule famille : le poids, la taille et le tracking font tout) ── */
+/* ── Utilitaires ─────────────────────────────────────────────────────────── */
 
-/* Titres : sans-serif serrée, nette */
+/* Titres : la grotesque, resserrée */
 .font-display {
-  font-family: var(--font-sans);
-  letter-spacing: -0.014em;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 /* Le chiffre-héros : très serré, tabulaire, en gras — le repère net du dashboard */
 .display-figure {
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.04em;
+}
+
+/* Le geste signature : l'œuvre en cours teinte son propre bandeau avec la
+   couleur dominante de son affiche (cf. useDominantColor). Sans teinte connue,
+   le color-mix retombe sur du transparent et la surface reste neutre. */
+.tinted {
+  --tint: transparent;
+  background:
+    radial-gradient(
+      95% 150% at 4% 0%,
+      color-mix(in oklab, var(--tint) 42%, transparent),
+      transparent 68%
+    ),
+    var(--surface);
+}
+
+/* Sur fond sombre un mélange vers la transparence s'éteint : il faut doser
+   plus franchement pour que la teinte reste perceptible. */
+.dark .tinted {
+  background:
+    radial-gradient(
+      95% 150% at 4% 0%,
+      color-mix(in oklab, var(--tint) 62%, transparent),
+      transparent 70%
+    ),
+    var(--surface);
+}
+
+/* Jaquette sans affiche : étiquette de tranche, centrée et espacée, plutôt
+   qu'un pictogramme unique pour les quatre médias. */
+.poster-fallback {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.3;
 }
 
 /* Chiffres alignés (heures, compteurs) */

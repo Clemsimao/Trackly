@@ -14,6 +14,7 @@ import {
 import { addBook, addFilm, addGame, addSeries } from '../../api/library';
 import { existingEntryId } from '../../api/client';
 import { fr } from '../../i18n/fr';
+import { Icon } from '../Icon';
 
 /** Chemin de la fiche bibliothèque pour un type de média. */
 export const LIBRARY_PATH: Record<MediaType, string> = {
@@ -59,9 +60,9 @@ export function QuickAddButton({ item }: { item: SearchResultItem }) {
         onClick={(event) => event.stopPropagation()}
         aria-label={fr.library.openEntry}
         title={fr.library.openEntry}
-        className="absolute right-2 top-2 z-10 rounded-full bg-done px-2.5 py-1 text-sm font-bold text-white shadow-md focus-visible:outline-2 focus-visible:outline-primary"
+        className="absolute top-2 right-2 z-10 grid h-7 w-7 place-items-center rounded-full bg-done text-white shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
-        ✓
+        <Icon name="check" className="h-4 w-4" />
       </Link>
     );
   }

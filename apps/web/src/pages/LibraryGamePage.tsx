@@ -33,6 +33,7 @@ import {
   Section,
   inputClass,
 } from '../components/library/shared';
+import { Icon } from '../components/Icon';
 import { fr } from '../i18n/fr';
 import { formatHoursFromSeconds } from '../utils/format';
 import { useDocumentTitle } from '../utils/useDocumentTitle';
@@ -68,7 +69,7 @@ function GameEntryView({ entry }: { entry: GameEntryDetail }) {
         <div className="mt-4 rounded-xl border border-primary/40 bg-primary/10 p-3 text-sm">
           {resumeNotes.map((o) => (
             <p key={o.id}>
-              <span className="font-semibold">📌 {o.platform} :</span> {o.resumeNote}
+              <span className="font-semibold">{o.platform} :</span> {o.resumeNote}
             </p>
           ))}
         </div>
@@ -284,8 +285,9 @@ function OwnershipCard({
       }}
     >
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">
-          🎮 {ownership.platform}
+        <h3 className="flex items-center gap-1.5 font-semibold">
+          <Icon name="game" className="h-4 w-4 shrink-0 text-(--text-muted)" />
+          {ownership.platform}
           <RemainingChip form={form} durations={durations} />
         </h3>
         <button

@@ -21,6 +21,7 @@ import {
   Section,
   inputClass,
 } from '../components/library/shared';
+import { Icon } from '../components/Icon';
 import { fr } from '../i18n/fr';
 import { useDocumentTitle } from '../utils/useDocumentTitle';
 import { formatHoursFromSeconds, formatMinutes } from '../utils/format';
@@ -165,8 +166,8 @@ function SeasonRow({ entryId, season }: { entryId: string; season: SeasonState }
         aria-expanded={open}
         className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:text-link focus-visible:outline-2 focus-visible:outline-primary"
       >
-        <span className="font-medium">
-          {complete ? '✅ ' : ''}
+        <span className="flex items-center gap-1.5 font-medium">
+          {complete ? <Icon name="check" className="h-3.5 w-3.5 shrink-0 text-done" /> : null}
           {season.name}
         </span>
         <span className="text-(--text-muted)">
@@ -219,8 +220,12 @@ function SeasonRow({ entryId, season }: { entryId: string; season: SeasonState }
                       episode.watched ? 'text-(--text-muted)' : ''
                     } ${episode.aired ? 'hover:bg-(--surface)' : 'opacity-50'}`}
                   >
-                    <span aria-hidden className="w-5 text-center">
-                      {episode.watched ? '✅' : '⬜'}
+                    <span aria-hidden className="grid w-5 shrink-0 place-items-center">
+                      {episode.watched ? (
+                        <Icon name="check" className="h-4 w-4 text-done" />
+                      ) : (
+                        <span className="h-3.5 w-3.5 rounded-[3px] border border-(--border)" />
+                      )}
                     </span>
                     <span className="w-10 shrink-0 text-xs text-(--text-muted)">
                       E{String(episode.episodeNumber).padStart(2, '0')}

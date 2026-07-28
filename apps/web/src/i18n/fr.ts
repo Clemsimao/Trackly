@@ -30,8 +30,8 @@ export const fr = {
   theme: {
     toLight: 'Passer en mode clair',
     toDark: 'Passer en mode sombre',
-    light: '☀️ Clair',
-    dark: '🌙 Sombre',
+    light: 'Clair',
+    dark: 'Sombre',
   },
   fields: {
     email: 'Adresse e-mail',
@@ -160,8 +160,14 @@ export const fr = {
   library: {
     title: 'Bibliothèque',
     backToLibrary: '← Retour à la bibliothèque',
-    empty: 'Ta bibliothèque est vide — commence par une recherche !',
+    // Un écran vide est une invitation à agir, pas un constat : un titre, ce que
+    // ça apportera, et l'action. Découpé en trois pour pouvoir le mettre en page.
+    emptyTitle: 'Ta bibliothèque est vide',
+    emptyHint:
+      'Ajoute un premier jeu, une série, un film ou un livre : Trackly calcule le temps qu’il te reste dessus.',
+    emptyCta: 'Chercher une œuvre',
     emptyFiltered: 'Rien ne correspond à ces filtres.',
+    emptyFilteredCta: 'Effacer les filtres',
     error: 'Impossible de charger ta bibliothèque. Réessaie dans un instant.',
     add: 'Ajouter',
     addPending: 'Ajout…',
@@ -219,14 +225,19 @@ export const fr = {
       series: 'Séries',
       films: 'Films',
       books: 'Livres',
-      favorites: '★ Favoris',
+      favorites: 'Favoris',
       anyStatus: 'Tous les statuts',
       anyGenre: 'Tous les genres',
       anyPlatform: 'Toutes les plateformes',
+      sort: 'Trier',
+      sortRecent: 'Modifié récemment',
+      sortTitle: 'Titre A → Z',
     },
     counts: {
       episodes: 'épisodes vus',
       hours: 'h de jeu',
+      work: 'œuvre',
+      works: 'œuvres',
     },
     opinion: {
       title: 'Mon avis',
@@ -316,6 +327,12 @@ export const fr = {
       resumeHint: 'Reprendre :',
       empty: 'Rien en cours — pioche dans ta bibliothèque !',
       seeLibrary: 'Voir toute la bibliothèque →',
+      // Le héros de l'accueil : l'œuvre la plus proche d'être finie.
+      heroEyebrow: 'À reprendre',
+      heroResume: 'Reprendre',
+      heroRemaining: 'restantes',
+      heroRemainingUnknown: 'Durée à estimer',
+      alsoInProgress: 'Aussi en cours',
     },
     budget: {
       title: 'Ton budget temps',

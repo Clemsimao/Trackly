@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ApiClientError } from '../../api/client';
 import { fr } from '../../i18n/fr';
+import { Icon } from '../Icon';
 
 export function LibraryShell({
   isPending,
@@ -158,13 +159,14 @@ export function OpinionEditor({
             type="button"
             onClick={() => setFavorite((v) => !v)}
             aria-pressed={favorite}
-            className={`rounded-full border px-3 py-1.5 text-sm transition focus-visible:outline-2 focus-visible:outline-primary ${
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
               favorite
                 ? 'border-paused bg-paused/15 text-paused'
                 : 'border-(--border) bg-(--surface) hover:border-paused'
             }`}
           >
-            {favorite ? '⭐' : '☆'} {fr.library.opinion.favorite}
+            <Icon name="star" className={`h-3.5 w-3.5 ${favorite ? '' : 'opacity-40'}`} />
+            {fr.library.opinion.favorite}
           </button>
         </div>
         <label className="block text-sm">
