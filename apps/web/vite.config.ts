@@ -22,7 +22,9 @@ export default defineConfig({
         lang: 'fr',
         display: 'standalone',
         start_url: '/',
-        background_color: '#0f1115',
+        // Fond de l'écran de démarrage : l'encre tiède de l'icône, pas un
+        // gris-bleu froid — sinon la tuile flotte sur un fond qui jure avec elle.
+        background_color: '#1b1917',
         theme_color: '#3b5bdb',
         icons: [
           { src: '/pwa-64.png', sizes: '64x64', type: 'image/png' },
