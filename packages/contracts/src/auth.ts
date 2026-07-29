@@ -42,6 +42,13 @@ export const publicUserSchema = z.object({
   createdAt: z.string().datetime(),
   /** Date d'effacement prévue si une suppression est en cours (A5), sinon null. */
   deletionScheduledFor: z.string().datetime().nullable().default(null),
+  /**
+   * Exploitant de l'instance (ADMIN_EMAIL côté API). Ne donne accès à aucune
+   * donnée : sert uniquement à afficher les repères d'exploitation, invisibles
+   * pour les autres comptes. Le calcul reste serveur — le front n'a donc pas à
+   * embarquer d'adresse e-mail dans son bundle.
+   */
+  isAdmin: z.boolean().default(false),
 });
 export type PublicUser = z.infer<typeof publicUserSchema>;
 

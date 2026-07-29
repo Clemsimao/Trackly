@@ -27,6 +27,8 @@ POSTGRES_PASSWORD=<généré : openssl rand -hex 32>
 CLOUDFLARE_TUNNEL_TOKEN=<token de l'étape 2>
 APP_URL=https://trackly.<ton-domaine>
 # Optionnel : RESEND_API_KEY=<clé API Resend>
+# Optionnel : ADMIN_EMAIL=<ton adresse> — affiche l'état de l'API sur l'accueil,
+#             pour ce compte seulement. Non renseignée, personne ne le voit.
 EOF
 chmod 600 .env
 docker compose -f compose.prod.yml up -d

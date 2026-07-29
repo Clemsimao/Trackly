@@ -8,7 +8,7 @@ import { PasswordService } from './password.service';
 import { ResetTokenService } from './reset-token.service';
 import { SessionService } from './session.service';
 
-export function toPublicUser(user: User): PublicUser {
+export function toPublicUser(user: User, adminEmail?: string): PublicUser {
   return {
     id: user.id,
     email: user.email,
@@ -16,6 +16,9 @@ export function toPublicUser(user: User): PublicUser {
     createdAt: user.createdAt.toISOString(),
     // A5 : le front affiche un bandeau d'annulation tant que la purge n'a pas eu lieu.
     deletionScheduledFor: deletionDeadline(user.deletionRequestedAt)?.toISOString() ?? null,
+    // Comparaison insensible à la casse : les adresses ne sont pas normalisées
+    // en base, et un « Clement@… » ne doit pas perdre son statut d'exploitant.
+    isAdmin: adminEmail != null && user.email.toLowerCase() === adminEmail.toLowerCase(),
   };
 }
 

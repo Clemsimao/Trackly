@@ -30,6 +30,16 @@ describe('validateEnvironment', () => {
     expect(environment).not.toHaveProperty('RESEND_API_KEY');
   });
 
+  it('traite un ADMIN_EMAIL vide comme absent (compose passe ${ADMIN_EMAIL:-})', () => {
+    expect(validateEnvironment({ ...base, ADMIN_EMAIL: '' }).ADMIN_EMAIL).toBeUndefined();
+  });
+
+  it('refuse un ADMIN_EMAIL qui n’est pas une adresse', () => {
+    expect(() => validateEnvironment({ ...base, ADMIN_EMAIL: 'pas-une-adresse' })).toThrow(
+      /ADMIN_EMAIL/,
+    );
+  });
+
   it('refuse une configuration IGDB partielle', () => {
     expect(() => validateEnvironment({ ...base, IGDB_CLIENT_ID: 'id' })).toThrow(
       /IGDB_CLIENT_SECRET/,

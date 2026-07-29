@@ -5,7 +5,8 @@ import type { PrismaService } from '../prisma/prisma.service';
 import type { MailService } from '../mail/mail.service';
 import type { ResetTokenService } from './reset-token.service';
 import type { SessionService } from './session.service';
-import { AuthService } from './auth.service';
+import type { User } from '@prisma/client';
+import { AuthService, toPublicUser } from './auth.service';
 import { PasswordService } from './password.service';
 
 function makeDeps() {
@@ -110,5 +111,31 @@ describe('AuthService', () => {
 
     expect(prisma.user.update).toHaveBeenCalled();
     expect(sessions.revokeAllForUser).toHaveBeenCalledWith('u1');
+  });
+});
+
+describe('toPublicUser', () => {
+  const user = {
+    id: 'u1',
+    email: 'Exploitant@Trackly.fr',
+    displayName: 'Clément',
+    createdAt: new Date('2026-01-12T10:00:00.000Z'),
+    deletionRequestedAt: null,
+  } as unknown as User;
+
+  it('sans ADMIN_EMAIL, personne n’est exploitant', () => {
+    expect(toPublicUser(user).isAdmin).toBe(false);
+  });
+
+  it('reconnaît l’exploitant quelle que soit la casse de l’adresse', () => {
+    expect(toPublicUser(user, 'exploitant@trackly.fr').isAdmin).toBe(true);
+  });
+
+  it('un autre compte n’est jamais exploitant', () => {
+    expect(toPublicUser(user, 'quelqun-dautre@trackly.fr').isAdmin).toBe(false);
+  });
+
+  it('n’expose pas le mot de passe haché', () => {
+    expect(toPublicUser(user, 'exploitant@trackly.fr')).not.toHaveProperty('passwordHash');
   });
 });

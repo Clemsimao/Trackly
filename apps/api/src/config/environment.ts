@@ -6,6 +6,16 @@ const baseEnvironmentSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL est requise'),
   APP_URL: z.string().url('APP_URL doit être une URL valide').default('http://localhost:5173'),
+  /**
+   * Compte exploitant : seul à voir les repères d'exploitation dans l'interface.
+   * Le préprocesseur traite la chaîne vide comme absente — compose passe
+   * `${ADMIN_EMAIL:-}`, et sans ça une variable non renseignée ferait échouer
+   * la validation d'adresse et refuserait de démarrer l'API.
+   */
+  ADMIN_EMAIL: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().email('ADMIN_EMAIL doit être une adresse valide').optional(),
+  ),
   RESEND_API_KEY: z.string().optional(),
   MAIL_FROM: z.string().optional(),
   TMDB_API_TOKEN: z.string().optional(),

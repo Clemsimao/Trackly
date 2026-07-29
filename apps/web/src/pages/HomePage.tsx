@@ -67,9 +67,17 @@ export function HomePage() {
         >
           {fr.auth.logoutAction}
         </button>
-        <div className="ml-auto">
-          <ApiStatus />
-        </div>
+        {/*
+          Repère d'exploitation, réservé au compte exploitant : « API
+          opérationnelle — v0.1.0 » est du vocabulaire de système, sans valeur
+          pour qui utilise l'app. Le cas qui le concerne, être hors ligne, est
+          déjà traité par le bandeau en haut de l'écran.
+        */}
+        {user?.isAdmin ? (
+          <div className="ml-auto">
+            <ApiStatus />
+          </div>
+        ) : null}
       </div>
     </main>
   );

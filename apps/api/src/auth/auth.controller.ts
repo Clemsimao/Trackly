@@ -1,4 +1,5 @@
 import { Body, Controller, Get, HttpCode, Post, Req, Res } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import {
@@ -14,6 +15,7 @@ import {
   type ResetPasswordBody,
 } from '@trackly/contracts';
 import type { User } from '@prisma/client';
+import type { Environment } from '../config/environment';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { AuthService, toPublicUser } from './auth.service';
 import { CurrentUser, type RequestWithUser } from './current-user.decorator';
@@ -28,7 +30,13 @@ export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly sessions: SessionService,
+    private readonly config: ConfigService<Environment, true>,
   ) {}
+
+  /** Compte exploitant, ou undefined si l'instance n'en déclare pas. */
+  private get adminEmail(): string | undefined {
+    return this.config.get('ADMIN_EMAIL', { infer: true });
+  }
 
   @Public()
   @Throttle(STRICT_THROTTLE)
@@ -40,7 +48,7 @@ export class AuthController {
     const user = await this.auth.register(body.email, body.password, body.displayName);
     // Connexion automatique après inscription (story A1)
     await this.startSession(res, user.id, false);
-    return { user: toPublicUser(user) };
+    return { user: toPublicUser(user, this.adminEmail) };
   }
 
   @Public()
@@ -53,7 +61,7 @@ export class AuthController {
   ): Promise<AuthSuccess> {
     const user = await this.auth.login(body.email, body.password);
     await this.startSession(res, user.id, body.rememberMe);
-    return { user: toPublicUser(user) };
+    return { user: toPublicUser(user, this.adminEmail) };
   }
 
   @HttpCode(200)
@@ -70,7 +78,7 @@ export class AuthController {
 
   @Get('me')
   me(@CurrentUser() user: User): AuthSuccess {
-    return { user: toPublicUser(user) };
+    return { user: toPublicUser(user, this.adminEmail) };
   }
 
   @Public()

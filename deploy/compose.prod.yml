@@ -32,6 +32,9 @@ services:
       DATABASE_URL: postgresql://trackly:${POSTGRES_PASSWORD}@postgres:5432/trackly
       # URL publique — sert à construire les liens de réinitialisation (Lot 1)
       APP_URL: ${APP_URL:-https://trackly.clemhouse.uk}
+      # Compte exploitant : seul à voir les repères d'exploitation (état de
+      # l'API, version). Vide = personne ne les voit.
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       # Optionnel : sans clé l'envoi est désactivé, sans journaliser les jetons.
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-Trackly <onboarding@resend.dev>}
