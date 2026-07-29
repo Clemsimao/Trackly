@@ -225,7 +225,13 @@ function Shelf({ items }: { items: DashboardItem[] }) {
         </Link>
       </div>
 
-      <ul className="mt-3 grid grid-flow-col justify-start gap-4 overflow-x-auto border-b border-(--border) pb-4 [grid-auto-columns:7rem] sm:[grid-auto-columns:8rem]">
+      {/*
+        Rangée défilante au doigt sur mobile ; à partir de sm la largeur suffit,
+        l'étagère se range donc en grille qui retourne à la ligne. Sans ça un
+        débordement de quelques pixels suffisait à faire apparaître la barre de
+        défilement native — épaisse et à boutons flèches sous Windows.
+      */}
+      <ul className="scroll-discret mt-3 grid grid-flow-col justify-start gap-4 overflow-x-auto border-b border-(--border) pb-4 [grid-auto-columns:7rem] sm:grid-flow-row sm:grid-cols-[repeat(auto-fill,minmax(7.5rem,1fr))] sm:gap-y-6 sm:overflow-x-visible">
         {items.map((item) => (
           <li key={`${item.mediaType}-${item.entryId}`}>
             <Link

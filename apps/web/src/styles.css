@@ -130,6 +130,28 @@ body {
     var(--surface);
 }
 
+/* Barre de défilement discrète, pour les rares zones qui défilent encore (les
+   petits écrans). La barre native de Chrome sous Windows est épaisse et porte
+   des boutons flèches : elle écrase tout ce qu'il y a autour. */
+.scroll-discret {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.scroll-discret::-webkit-scrollbar {
+  height: 6px;
+}
+.scroll-discret::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-discret::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 99px;
+}
+/* Supprime les boutons flèches, propres à Windows */
+.scroll-discret::-webkit-scrollbar-button {
+  display: none;
+}
+
 /* Jaquette sans affiche : étiquette de tranche, centrée et espacée, plutôt
    qu'un pictogramme unique pour les quatre médias. */
 .poster-fallback {
