@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 /**
  * L'affiche — la matière première de l'application. Trois responsabilités :
  * l'image, le repli quand le fournisseur n'en a pas, et le liseré de statut.
@@ -20,12 +22,22 @@ export function Poster({
   className?: string;
   sizes?: string;
 }) {
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const hasUsableImage = url != null && url !== failedUrl;
+
   return (
     <div
       className={`relative overflow-hidden rounded-lg bg-(--surface-raised) ring-1 ring-(--border) ${className}`}
     >
-      {url ? (
-        <img src={url} alt="" loading="lazy" sizes={sizes} className="h-full w-full object-cover" />
+      {hasUsableImage ? (
+        <img
+          src={url}
+          alt=""
+          loading="lazy"
+          sizes={sizes}
+          className="h-full w-full object-cover"
+          onError={() => setFailedUrl(url)}
+        />
       ) : (
         <span className="poster-fallback absolute inset-0 grid place-content-center px-1.5 text-center text-[0.55rem] text-(--text-muted)">
           {title}

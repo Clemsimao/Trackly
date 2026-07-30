@@ -39,11 +39,14 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
-            // Jaquettes et affiches : cache-first, la bibliothèque reste belle hors ligne
+            // Le réseau répare automatiquement une éventuelle réponse opaque
+            // défectueuse mise en cache ; le cache garde les affiches disponibles
+            // hors ligne et prend le relais si le CDN ne répond pas assez vite.
             urlPattern: /^https:\/\/(image\.tmdb\.org|images\.igdb\.com)\/.*/,
-            handler: 'CacheFirst',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'media-images',
+              networkTimeoutSeconds: 4,
               expiration: { maxEntries: 300, maxAgeSeconds: 30 * 24 * 3600 },
               // TMDB et IGDB ne renvoient pas d'en-tête CORS : les réponses sont
               // opaques (status 0). Sans ce réglage, Workbox n'accepte que les 200
