@@ -39,19 +39,24 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
-            // Le réseau répare automatiquement une éventuelle réponse opaque
-            // défectueuse mise en cache ; le cache garde les affiches disponibles
-            // hors ligne et prend le relais si le CDN ne répond pas assez vite.
+            // Jaquettes et affiches : cache-first, la bibliothèque reste belle hors
+            // ligne. Les URLs sont immuables (TMDB et IGDB annoncent un an de
+            // max-age) : revalider coûterait un aller-retour réseau par vignette
+            // sans jamais rien changer.
             urlPattern: /^https:\/\/(image\.tmdb\.org|images\.igdb\.com)\/.*/,
-            handler: 'NetworkFirst',
+            handler: 'CacheFirst',
             options: {
-              cacheName: 'media-images',
-              networkTimeoutSeconds: 4,
+              // Nom versionné : les navigateurs déjà installés repartent d'un cache
+              // vierge, sans quoi ils traîneraient encore un mois les réponses
+              // d'erreur figées par la génération précédente.
+              cacheName: 'media-images-v2',
               expiration: { maxEntries: 300, maxAgeSeconds: 30 * 24 * 3600 },
-              // TMDB et IGDB ne renvoient pas d'en-tête CORS : les réponses sont
-              // opaques (status 0). Sans ce réglage, Workbox n'accepte que les 200
-              // et ce cache reste vide — vérifié en prod le 2026-07-22.
-              cacheableResponse: { statuses: [0, 200] },
+              // Les affiches sont demandées en CORS (Poster.tsx) : le statut est
+              // lisible, donc seule une vraie image est mise en cache. Accepter le
+              // statut 0 des réponses opaques revenait à figer un 404 ou une page
+              // d'erreur du CDN pendant un mois — c'était la cause des affiches
+              // définitivement cassées.
+              cacheableResponse: { statuses: [200] },
             },
           },
         ],

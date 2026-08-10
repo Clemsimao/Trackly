@@ -34,6 +34,13 @@ export function Poster({
           src={url}
           alt=""
           loading="lazy"
+          // Les trois CDN d'affiches renvoient « Access-Control-Allow-Origin: * ».
+          // Demander la ressource en CORS plutôt qu'en no-cors change tout pour le
+          // service worker : la réponse n'est plus opaque, son statut est lisible,
+          // et une erreur du CDN ne peut plus être mise en cache comme une image
+          // valide (cf. vite.config.ts). Bonus : useDominantColor, qui charge déjà
+          // l'affiche en CORS, réutilise cette entrée au lieu de la retélécharger.
+          crossOrigin="anonymous"
           sizes={sizes}
           className="h-full w-full object-cover"
           onError={() => setFailedUrl(url)}

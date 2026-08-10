@@ -14,6 +14,9 @@ describe('Poster', () => {
     const image = container.querySelector('img');
 
     expect(image).toHaveAttribute('src', 'https://example.com/loki.jpg');
+    // Le cache d'affiches du service worker ne sait trier les erreurs que si la
+    // réponse n'est pas opaque : sans cet attribut, il remet en cache les 404.
+    expect(image).toHaveAttribute('crossorigin', 'anonymous');
     fireEvent.error(image!);
 
     expect(container.querySelector('img')).toBeNull();
