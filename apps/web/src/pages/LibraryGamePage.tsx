@@ -25,6 +25,7 @@ import {
   updateOwnership,
 } from '../api/library';
 import {
+  ConfirmButton,
   DeleteEntryButton,
   EntryHeader,
   LibraryShell,
@@ -290,15 +291,13 @@ function OwnershipCard({
           {ownership.platform}
           <RemainingChip form={form} durations={durations} />
         </h3>
-        <button
-          type="button"
-          onClick={() => {
-            if (window.confirm(fr.library.ownership.deleteConfirm)) deleteMutation.mutate();
-          }}
+        <ConfirmButton
+          label={fr.library.ownership.delete}
+          confirmLabel={fr.library.ownership.deleteConfirmAction}
+          disabled={deleteMutation.isPending}
+          onConfirm={() => deleteMutation.mutate()}
           className="text-xs text-dropped hover:underline"
-        >
-          {fr.library.ownership.delete}
-        </button>
+        />
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -458,7 +457,9 @@ function RemainingChip({
 function AddOwnershipForm({ entryId, platforms }: { entryId: string; platforms: string[] }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [platform, setPlatform] = useState(platforms[0] ?? '__other__');
+  // Choix explicite obligatoire — voir AddToLibraryPanel : l'ordre IGDB n'a pas
+  // de sens pour un défaut.
+  const [platform, setPlatform] = useState(platforms.length === 0 ? '__other__' : '');
   const [custom, setCustom] = useState('');
   const chosen = platform === '__other__' ? custom.trim() : platform;
 
@@ -498,6 +499,9 @@ function AddOwnershipForm({ entryId, platforms }: { entryId: string; platforms: 
           onChange={(event) => setPlatform(event.target.value)}
           className={inputClass}
         >
+          <option value="" disabled>
+            {fr.library.platformPlaceholder}
+          </option>
           {platforms.map((name) => (
             <option key={name} value={name}>
               {name}

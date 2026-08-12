@@ -193,6 +193,53 @@ export function OpinionEditor({
   );
 }
 
+/**
+ * Confirmation en deux temps : le premier clic arme le bouton, le second agit.
+ * Remplace `window.confirm`, dont la modale native bloque le thread et reste
+ * hors de portée des outils qui pilotent la page (agents navigateur, E2E).
+ * Un clic ailleurs (blur) désarme.
+ */
+export function ConfirmButton({
+  label,
+  confirmLabel,
+  hint,
+  onConfirm,
+  disabled,
+  className,
+}: {
+  label: string;
+  confirmLabel: string;
+  hint?: string;
+  onConfirm: () => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const [armed, setArmed] = useState(false);
+
+  return (
+    <span className="inline-flex items-center gap-2">
+      <button
+        type="button"
+        disabled={disabled}
+        aria-live="polite"
+        onBlur={() => setArmed(false)}
+        onClick={() => {
+          if (!armed) {
+            setArmed(true);
+            return;
+          }
+          setArmed(false);
+          onConfirm();
+        }}
+        className={className}
+      >
+        {armed ? confirmLabel : label}
+      </button>
+      {armed && hint ? <span className="text-xs text-(--text-muted)">{hint}</span> : null}
+    </span>
+  );
+}
+
 /** Suppression avec confirmation, puis retour à la bibliothèque. */
 export function DeleteEntryButton({ onDelete }: { onDelete: () => Promise<void> }) {
   const navigate = useNavigate();
@@ -209,15 +256,15 @@ export function DeleteEntryButton({ onDelete }: { onDelete: () => Promise<void> 
   });
 
   return (
-    <button
-      type="button"
-      disabled={mutation.isPending}
-      onClick={() => {
-        if (window.confirm(fr.library.removeConfirm)) mutation.mutate();
-      }}
-      className="mt-8 rounded-lg border border-dropped/40 px-4 py-2 text-sm text-dropped transition hover:bg-dropped/10 focus-visible:outline-2 focus-visible:outline-dropped"
-    >
-      {fr.library.remove}
-    </button>
+    <div className="mt-8">
+      <ConfirmButton
+        label={fr.library.remove}
+        confirmLabel={fr.library.removeConfirmAction}
+        hint={fr.library.removeConfirm}
+        disabled={mutation.isPending}
+        onConfirm={() => mutation.mutate()}
+        className="rounded-lg border border-dropped/40 px-4 py-2 text-sm text-dropped transition hover:bg-dropped/10 focus-visible:outline-2 focus-visible:outline-dropped"
+      />
+    </div>
   );
 }

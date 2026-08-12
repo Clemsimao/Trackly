@@ -111,7 +111,11 @@ export function AddToLibraryPanel({ mediaType, externalId, platforms = [] }: Pan
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<string>(DEFAULT_STATUS[mediaType]);
-  const [platform, setPlatform] = useState<string>(platforms[0] ?? '__other__');
+  // Pas de présélection : l'ordre IGDB est arbitraire (souvent la plateforme
+  // historique du jeu, ex. PS4 pour un titre joué sur PC) — mieux vaut un choix
+  // explicite qu'un défaut faux enregistré sans que l'utilisateur le voie.
+  // Sans liste IGDB, « Autre… » est le seul choix possible : on l'ouvre direct.
+  const [platform, setPlatform] = useState<string>(platforms.length === 0 ? '__other__' : '');
   const [customPlatform, setCustomPlatform] = useState('');
   const [existing, setExisting] = useState<string | null>(null);
 
@@ -200,6 +204,9 @@ export function AddToLibraryPanel({ mediaType, externalId, platforms = [] }: Pan
               onChange={(event) => setPlatform(event.target.value)}
               className="rounded-lg border border-(--border) bg-(--bg) px-3 py-2"
             >
+              <option value="" disabled>
+                {fr.library.platformPlaceholder}
+              </option>
               {platforms.map((name) => (
                 <option key={name} value={name}>
                   {name}
